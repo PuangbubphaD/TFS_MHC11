@@ -8,6 +8,11 @@ $user    = 'tfs_user';
 $pass    = 'PPLAIeznNRpT';
 $charset = 'utf8mb4';
 
+// หากมีไฟล์ตั้งค่าส่วนตัวเครื่อง (Local XAMPP) ให้ใช้ค่านั้นแทน
+if (file_exists(__DIR__ . '/db.local.php')) {
+    require_once __DIR__ . '/db.local.php';
+}
+
 define('ALLOW_ADMIN_TOOLS', false); // Set to true only for local setup or seeding, keep false in production
 define('BOT_API_KEY', ''); // Add your Bank of Thailand API Key here if needed
 
