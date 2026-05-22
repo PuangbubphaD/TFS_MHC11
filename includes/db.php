@@ -1,8 +1,8 @@
 <?php
-$host    = 'localhost';
-$db      = 'tfs_db';
-$user    = 'root';
-$pass    = '';
+$host    = getenv('DB_HOST')     ?: 'localhost';   // Docker: ชื่อ container DB | Local: localhost
+$db      = getenv('DB_NAME')     ?: 'tfs_db';
+$user    = getenv('DB_USER')     ?: 'root';
+$pass    = getenv('DB_PASSWORD') ?: '';
 $charset = 'utf8mb4';
 
 define('ALLOW_ADMIN_TOOLS', false); // Set to true only for local setup or seeding, keep false in production
