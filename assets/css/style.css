@@ -252,30 +252,16 @@ body {
     flex-shrink: 0;
 }
 
-.stat-info {
-    min-width: 0;
-    flex: 1;
-    container-type: inline-size;
-}
-
 .stat-info .value {
-    font-size: clamp(1.1rem, 18cqw, 1.8rem);
+    font-size: 1.8rem;
     font-weight: 800;
-    line-height: 1.1;
-    word-break: break-word; /* fallback */
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem;
+    line-height: 1;
 }
 
 .stat-info .label {
     font-size: 0.8rem;
     color: var(--text-muted);
     margin-top: 0.25rem;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.2;
 }
 
 /* ======================== BUTTONS ======================== */
