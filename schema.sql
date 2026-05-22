@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS projects (
     end_date DATE,
     status ENUM('draft','active','completed','cancelled') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS activities (
     planned_budget DECIMAL(15,2) DEFAULT 0,
     status ENUM('planned','ongoing','completed','cancelled') DEFAULT 'planned',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
 );
 
