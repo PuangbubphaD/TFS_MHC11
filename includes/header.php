@@ -47,9 +47,9 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TFS - Task Flow System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="stylesheet" href="/TFS/assets/css/style.css?v=<?= time() ?>">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="/TFS/assets/js/main.js?v=<?= time() ?>" defer></script>
+    <script src="assets/js/main.js?v=<?= time() ?>" defer></script>
     <style>
         #lightbox { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); align-items:center; justify-content:center; cursor:default; padding:2rem; }
         .modal-box { background:#fff; width:90%; height:90%; border-radius:12px; display:flex; flex-direction:column; box-shadow:0 20px 50px rgba(0,0,0,0.3); overflow:hidden; animation:modalUp 0.3s ease-out; }
@@ -139,7 +139,7 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
 <!-- SIDEBAR -->
 <aside class="sidebar">
     <div class="sidebar-logo" style="padding: 1rem 1.25rem; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.03);">
-        <img src="/TFS/assets/images/logo-light.png" alt="TFS Logo" style="max-width: 100%; max-height: 75px; border-radius: 8px; object-fit: contain;">
+        <img src="assets/images/logo-light.png" alt="TFS Logo" style="max-width: 100%; max-height: 75px; border-radius: 8px; object-fit: contain;">
     </div>
     <div class="sidebar-user">
         <div class="user-avatar"><?= $initials ?></div>
@@ -155,49 +155,49 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
     </div>
     <nav class="sidebar-nav">
         <div class="nav-section">เมนูหลัก</div>
-        <a href="/TFS/index.php" class="<?= $current_page === 'index' ? 'active' : '' ?>">
+        <a href="index.php" class="<?= $current_page === 'index' ? 'active' : '' ?>">
             <span class="icon">🏠</span> โครงการของฉัน
         </a>
-        <a href="/TFS/activities.php" class="<?= $current_page === 'activities' ? 'active' : '' ?>">
+        <a href="activities.php" class="<?= $current_page === 'activities' ? 'active' : '' ?>">
             <span class="icon">📌</span> กิจกรรม
         </a>
-        <a href="/TFS/gallery.php" class="<?= $current_page === 'gallery' ? 'active' : '' ?>">
+        <a href="gallery.php" class="<?= $current_page === 'gallery' ? 'active' : '' ?>">
             <span class="icon">🖼️</span> ประมวลภาพ
         </a>
-        <a href="/TFS/add_project.php" class="<?= $current_page === 'add_project' ? 'active' : '' ?>">
+        <a href="add_project.php" class="<?= $current_page === 'add_project' ? 'active' : '' ?>">
             <span class="icon">➕</span> เพิ่มโครงการใหม่
         </a>
 
         <?php if (in_array($role, ['head', 'director', 'admin'])): ?>
         <div class="nav-section">ผู้บริหาร</div>
-        <a href="/TFS/dashboard.php" class="<?= $current_page === 'dashboard' ? 'active' : '' ?>">
+        <a href="dashboard.php" class="<?= $current_page === 'dashboard' ? 'active' : '' ?>">
             <span class="icon">📊</span> Dashboard ภาพรวม
         </a>
-        <a href="/TFS/all_projects.php" class="<?= $current_page === 'all_projects' ? 'active' : '' ?>">
+        <a href="all_projects.php" class="<?= $current_page === 'all_projects' ? 'active' : '' ?>">
             <span class="icon">📋</span> โครงการทั้งหมด
         </a>
         <?php if ($role === 'admin'): ?>
-        <a href="/TFS/users.php" class="<?= $current_page === 'users' ? 'active' : '' ?>">
+        <a href="users.php" class="<?= $current_page === 'users' ? 'active' : '' ?>">
             <span class="icon">👥</span> จัดการสมาชิก
         </a>
-        <a href="/TFS/sync_holidays.php" class="<?= $current_page === 'sync_holidays' ? 'active' : '' ?>">
+        <a href="sync_holidays.php" class="<?= $current_page === 'sync_holidays' ? 'active' : '' ?>">
             <span class="icon">📅</span> จัดการวันหยุดและ API
         </a>
         <?php endif; ?>
         <?php endif; ?>
 
         <div class="nav-section">ตั้งค่า</div>
-        <a href="/TFS/profile.php" class="<?= $current_page === 'profile' ? 'active' : '' ?>">
+        <a href="profile.php" class="<?= $current_page === 'profile' ? 'active' : '' ?>">
             <span class="icon">👤</span> ข้อมูลส่วนตัว
         </a>
         <?php if ($role === 'admin'): ?>
-        <a href="/TFS/logs.php" class="<?= $current_page === 'logs' ? 'active' : '' ?>">
+        <a href="logs.php" class="<?= $current_page === 'logs' ? 'active' : '' ?>">
             <span class="icon">📜</span> ประวัติการใช้งาน
         </a>
         <?php endif; ?>
     </nav>
     <div class="sidebar-footer">
-        <a href="/TFS/logout.php">🚪 ออกจากระบบ</a>
+        <a href="logout.php">🚪 ออกจากระบบ</a>
         <div class="sidebar-version" onclick="showVersionPopup()" style="cursor: pointer; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; transition: color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
             <?= defined('APP_NAME') ? APP_NAME : 'TrackPro' ?><br>
             Version <?= defined('APP_VERSION') ? APP_VERSION : '1.0.0' ?>

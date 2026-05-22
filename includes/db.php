@@ -24,7 +24,7 @@ try {
     die('<div style="font-family:sans-serif;padding:2rem;background:#fee;border:1px solid #f00;border-radius:8px;margin:2rem">
         <h3>❌ Database Connection Error</h3>
         <p>กรุณาตรวจสอบ: XAMPP MySQL กำลังทำงาน และ Database <strong>tfs_db</strong> ถูกสร้างแล้ว</p>
-        <p><a href="/phpmyadmin" target="_blank">เปิด phpMyAdmin</a> แล้ว import ไฟล์ <strong>schema.sql</strong></p>
+        <p><a href="phpmyadmin" target="_blank">เปิด phpMyAdmin</a> แล้ว import ไฟล์ <strong>schema.sql</strong></p>
         <small>' . $e->getMessage() . '</small>
     </div>');
 }
