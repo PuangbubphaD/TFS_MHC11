@@ -69,6 +69,22 @@ CREATE TABLE IF NOT EXISTS activities (
 );
 
 -- ==============================
+-- ACTIVITY PHASES TABLE (8 Steps per Activity)
+-- ==============================
+CREATE TABLE IF NOT EXISTS activity_phases (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    activity_id INT NOT NULL,
+    phase_number TINYINT NOT NULL,
+    phase_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    deadline_date DATE,
+    completed_date DATE,
+    status ENUM('pending','in_progress','completed','overdue') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
+);
+
+-- ==============================
 -- ACTIVITY REPORTS TABLE (Each session/day of an activity)
 -- ==============================
 CREATE TABLE IF NOT EXISTS activity_reports (
