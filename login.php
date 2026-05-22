@@ -93,10 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ยังไม่มีบัญชี? <a href="register.php" style="color:var(--primary);font-weight:600">สมัครสมาชิก</a>
         </p>
 
-        <div style="margin-top:1.5rem;padding:1rem;background:#f7fafc;border-radius:10px;font-size:0.78rem;color:var(--text-muted)">
-            <strong>Demo Login:</strong><br>
-            👤 admin / password &nbsp;|&nbsp; (ผู้อำนวยการ)<br>
-            👤 staff1 / password &nbsp;|&nbsp; (เจ้าหน้าที่)
+        <!-- Footer Info -->
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); text-align: center;">
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.4rem 0; line-height: 1.6;">
+                &copy; 2026 ศูนย์สุขภาพจิตที่ 11. All rights reserved.
+            </p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.75rem 0; line-height: 1.6;">
+                ระบบนี้มีการจัดเก็บข้อมูลตาม <span style="color: var(--primary); font-weight: 600;">นโยบาย PDPA</span>
+            </p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+                🆘 <strong>แจ้งปัญหา:</strong> พบปัญหาการใช้งานติดต่อ : <span style="color: var(--primary); font-weight: 600;">งานสารสนเทศ</span>
+            </p>
         </div>
         
         <div onclick="document.getElementById('version-modal').style.display='flex'" style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
