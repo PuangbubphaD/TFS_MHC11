@@ -206,7 +206,7 @@ $monthlySpend = $pdo->query("
         <div class="stat-card fade-in" style="border-color:var(--secondary)">
             <div class="stat-icon" style="background:rgba(255,111,0,0.1);font-size:1.8rem">💰</div>
             <div class="stat-info" style="overflow:hidden;">
-                <div class="value" style="color:var(--secondary);font-size:1.15rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.2;">
+                <div class="value" style="color:var(--secondary);display:flex;flex-wrap:wrap;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.2;">
                     <span><?= number_format($totals['total_budget']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;">บาท</span>
                 </div>
@@ -216,7 +216,7 @@ $monthlySpend = $pdo->query("
         <div class="stat-card fade-in" style="border-color:var(--status-red)">
             <div class="stat-icon" style="background:rgba(229,62,62,0.1);font-size:1.8rem">📤</div>
             <div class="stat-info" style="overflow:hidden;">
-                <div class="value" style="color:var(--status-red);font-size:1.15rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.2;">
+                <div class="value" style="color:var(--status-red);display:flex;flex-wrap:wrap;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.2;">
                     <span><?= number_format($totals['total_spent']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;">บาท</span>
                 </div>
@@ -227,7 +227,7 @@ $monthlySpend = $pdo->query("
         <div class="stat-card fade-in" style="border-color:var(--primary-light)">
             <div class="stat-icon" style="background:rgba(107,70,193,0.1);font-size:1.8rem">👥</div>
             <div class="stat-info" style="width: 100%;overflow:hidden;">
-                <div class="value" style="color:var(--primary);font-size:1.25rem;display:flex;flex-direction:column;gap:0;letter-spacing:-0.3px;line-height:1.1;">
+                <div class="value" style="color:var(--primary);display:flex;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.1;">
                     <span><?= number_format($totals['total_actual_participants']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;">คน</span>
                 </div>
