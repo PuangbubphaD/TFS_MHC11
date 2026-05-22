@@ -252,10 +252,14 @@ body {
     flex-shrink: 0;
 }
 
+.stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .stat-info .value {
-    font-size: 1.8rem;
     font-weight: 800;
-    line-height: 1;
+    line-height: 1.2;
 }
 
 .stat-info .label {

@@ -205,7 +205,7 @@ $monthlySpend = $pdo->query("
         </div>
         <div class="stat-card fade-in" style="border-color:var(--secondary)">
             <div class="stat-icon" style="background:rgba(255,111,0,0.1);font-size:1.8rem">💰</div>
-            <div class="stat-info" style="overflow:hidden; width:100%; container-type: inline-size;">
+            <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
                 <div class="value" style="color:var(--secondary);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_budget']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">บาท</span>
@@ -215,20 +215,23 @@ $monthlySpend = $pdo->query("
         </div>
         <div class="stat-card fade-in" style="border-color:var(--status-red)">
             <div class="stat-icon" style="background:rgba(229,62,62,0.1);font-size:1.8rem">📤</div>
-            <div class="stat-info" style="overflow:hidden; width:100%; container-type: inline-size;">
+            <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
                 <div class="value" style="color:var(--status-red);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_spent']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">บาท</span>
                 </div>
-                <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">เบิกจ่ายแล้ว (<?= budgetPercent($totals['total_spent'], $totals['total_budget']) ?>%)</div>
+                <div class="label" style="margin-top:0.2rem; line-height:1.4;">
+                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">เบิกจ่ายแล้ว</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">(<?= budgetPercent($totals['total_spent'], $totals['total_budget']) ?>%)</div>
+                </div>
             </div>
         </div>
         <!-- 7th Card: Cumulative Participants Reach -->
         <div class="stat-card fade-in" style="border-color:var(--primary-light)">
             <div class="stat-icon" style="background:rgba(107,70,193,0.1);font-size:1.8rem">👥</div>
-            <div class="stat-info" style="width: 100%;overflow:hidden; container-type: inline-size;">
+            <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
                 <div class="value" style="color:var(--primary);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
-                    <span style="font-size: clamp(0.85rem, 16cqi, 1.25rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
+                    <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">คน</span>
                 </div>
                 <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">ผู้เข้าร่วม</div>
