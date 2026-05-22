@@ -231,7 +231,7 @@ $monthlySpend = $pdo->query("
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.25rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">คน</span>
                 </div>
-                <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">ผู้เข้าร่วมสะสม (Reach)</div>
+                <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">ผู้เข้าร่วม</div>
                 <div style="margin-top:0.4rem; width:100%;">
                     <?php 
                     $reach_pct = $totals['total_planned_participants'] > 0 ? round(($totals['total_actual_participants'] / $totals['total_planned_participants']) * 100) : 0;
@@ -253,19 +253,19 @@ $monthlySpend = $pdo->query("
         <!-- Budget Bar Chart -->
         <div class="card fade-in">
             <div class="card-header"><h3>💰 งบประมาณ vs ใช้จ่ายจริง (รายโครงการ)</h3></div>
-            <div style="position: relative; width: 100%;"><canvas id="budgetChart" height="220"></canvas></div>
+            <div style="position: relative; width: 100%; height: 350px;"><canvas id="budgetChart"></canvas></div>
         </div>
         <!-- Phase Pie + Monthly Spend -->
         <div class="card fade-in">
             <div class="card-header"><h3>📊 สถานะขั้นตอนทั้งหมด</h3></div>
-            <div style="position: relative; width: 100%;"><canvas id="phaseChart" height="220"></canvas></div>
+            <div style="position: relative; width: 100%; height: 350px;"><canvas id="phaseChart"></canvas></div>
         </div>
     </div>
 
     <!-- Monthly Spending Chart -->
     <div class="card fade-in mb-3">
         <div class="card-header"><h3>📈 การใช้จ่ายงบประมาณรายเดือน (6 เดือนย้อนหลัง)</h3></div>
-        <div style="position: relative; width: 100%;"><canvas id="monthlyChart" height="100"></canvas></div>
+        <div style="position: relative; width: 100%; height: 250px;"><canvas id="monthlyChart"></canvas></div>
     </div>
 
     <!-- WIDGETS ROW: Overdue Tasks & Ongoing Activities -->
@@ -820,6 +820,7 @@ const spentData    = <?= json_encode(array_column($budgetByProject, 'spent')) ?>
 
 new Chart(document.getElementById('budgetChart'), {
     type: 'bar',
+    indexAxis: window.innerWidth < 768 ? 'y' : 'x',
     data: {
         labels: budgetLabels,
         datasets: [
@@ -827,7 +828,39 @@ new Chart(document.getElementById('budgetChart'), {
             { label: 'ใช้จ่ายจริง', data: spentData, backgroundColor: 'rgba(229,62,62,0.7)', borderRadius: 6 }
         ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        const val = context.dataset.data[context.dataIndex];
+                        label += new Intl.NumberFormat('th-TH').format(val) + ' บาท';
+                        return label;
+                    },
+                    footer: function(tooltipItems) {
+                        const index = tooltipItems[0].dataIndex;
+                        const budget = budgetData[index];
+                        const spent = spentData[index];
+                        const remaining = budget - spent;
+                        const spentPct = budget > 0 ? ((spent / budget) * 100).toFixed(1) : '0.0';
+                        const remainingPct = budget > 0 ? ((remaining / budget) * 100).toFixed(1) : '0.0';
+                        return `คงเหลือ: ${new Intl.NumberFormat('th-TH').format(remaining)} บาท\nเบิกจ่ายแล้ว: ${spentPct}%\nคงเหลือ: ${remainingPct}%`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { beginAtZero: true },
+            y: { beginAtZero: true }
+        }
+    }
 });
 
 // Phase Pie Chart
@@ -847,7 +880,13 @@ new Chart(document.getElementById('phaseChart'), {
             borderWidth: 2, borderColor: '#fff'
         }]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: window.innerWidth < 768 ? 'bottom' : 'right' }
+        }
+    }
 });
 
 // Monthly Spending
@@ -866,7 +905,15 @@ new Chart(document.getElementById('monthlyChart'), {
             pointBackgroundColor: '#00acc1', pointRadius: 6
         }]
     },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { beginAtZero: true },
+            y: { beginAtZero: true }
+        }
+    }
 });
 
 // Toggle activities row (Desktop)
