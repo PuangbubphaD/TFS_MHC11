@@ -227,8 +227,8 @@ $monthlySpend = $pdo->query("
         <div class="stat-card fade-in" style="border-color:var(--primary-light)">
             <div class="stat-icon" style="background:rgba(107,70,193,0.1);font-size:1.8rem">👥</div>
             <div class="stat-info" style="width: 100%;overflow:hidden; container-type: inline-size;">
-                <div class="value" style="color:var(--primary);display:flex;flex-direction:column;gap:0;letter-spacing:-0.3px;line-height:1.1;">
-                    <span style="font-size: clamp(0.85rem, 18cqi, 1.25rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
+                <div class="value" style="color:var(--primary);display:flex;flex-wrap:wrap;align-items:baseline;gap:0.25rem;letter-spacing:-0.3px;line-height:1.2;">
+                    <span style="font-size: clamp(0.85rem, 16cqi, 1.25rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
                     <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">คน</span>
                 </div>
                 <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">ผู้เข้าร่วมสะสม (Reach)</div>
