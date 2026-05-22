@@ -904,3 +904,24 @@ tbody tr:last-child td { border-bottom: none; }
     }
 }
 
+/* ======================== MOBILE & BROWSER FIXES ======================== */
+/* 1. Prevent content from overflowing cards (Issue: long names breaking layout) */
+.card, .stat-card, .project-card, .mobile-project-card, 
+.card-header h3, .phase-card h4, td, th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* 2. Fix for Android LINE in-app browser <select> not opening */
+select.form-control, select.form-control-custom {
+    cursor: pointer;
+    -webkit-appearance: menulist;
+    appearance: menulist;
+    transform: translateZ(0); /* Force hardware acceleration to fix touch regions on older WebViews */
+}
+
+/* Ensure mobile-toggle doesn't get squished */
+.mobile-toggle {
+    flex-shrink: 0;
+}
