@@ -110,18 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?= defined('APP_NAME') ? APP_NAME : 'Task Flow System' ?> - Version <?= defined('APP_VERSION') ? APP_VERSION : '1.0.0' ?>
         </div>
 
-        <!-- Footer Info -->
-        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border); text-align: center;">
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.4rem 0; line-height: 1.6;">
-                &copy; 2026 ศูนย์สุขภาพจิตที่ 11. All rights reserved. | v1.0.0
-            </p>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.75rem 0; line-height: 1.6;">
-                ระบบนี้มีการจัดเก็บข้อมูลตาม <span style="color: var(--primary); font-weight: 600;">นโยบาย PDPA</span>
-            </p>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
-                🆘 <strong>แจ้งปัญหา:</strong> พบปัญหาการใช้งานติดต่อ : <span style="color: var(--primary); font-weight: 600;">งานสารสนเทศ</span>
-            </p>
-        </div>
+
     </div>
 </div>
 
