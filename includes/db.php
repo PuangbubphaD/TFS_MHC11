@@ -1,8 +1,11 @@
 <?php
-$host    = getenv('DB_HOST')     ?: 'localhost';   // Docker: ชื่อ container DB | Local: localhost
-$db      = getenv('DB_NAME')     ?: 'tfs_db';
-$user    = getenv('DB_USER')     ?: 'root';
-$pass    = getenv('DB_PASSWORD') ?: '';
+// ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
+$host    = 'mhc11-tfs-db';
+$db      = 'tfs_db';
+$user    = 'tfs_user';
+$pass    = 'PPLAIeznNRpT';
 $charset = 'utf8mb4';
 
 define('ALLOW_ADMIN_TOOLS', false); // Set to true only for local setup or seeding, keep false in production
