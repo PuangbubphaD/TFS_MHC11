@@ -219,9 +219,8 @@ foreach ($monthlySpend as &$spend) {
         <div class="stat-card fade-in" style="border-color:var(--secondary)">
             <div class="stat-icon" style="background:rgba(255,111,0,0.1);font-size:1.8rem">💰</div>
             <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
-                <div class="value" style="color:var(--secondary);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
+                <div class="value" style="color:var(--secondary);">
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_budget']) ?></span>
-                    <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">บาท</span>
                 </div>
                 <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">งบที่ได้รับจัดสรร</div>
             </div>
@@ -229,9 +228,8 @@ foreach ($monthlySpend as &$spend) {
         <div class="stat-card fade-in" style="border-color:var(--status-red)">
             <div class="stat-icon" style="background:rgba(229,62,62,0.1);font-size:1.8rem">📤</div>
             <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
-                <div class="value" style="color:var(--status-red);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
+                <div class="value" style="color:var(--status-red);">
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_spent']) ?></span>
-                    <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">บาท</span>
                 </div>
                 <div class="label" style="margin-top:0.2rem; line-height:1.4;">
                     <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">เบิกจ่ายแล้ว</div>
