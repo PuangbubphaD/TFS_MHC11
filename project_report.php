@@ -185,10 +185,13 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                 <?php foreach ($aphases as $i => $ap): 
                     $dotC = ['pending'=>'#cbd5e0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$ap['status']];
                 ?>
+                <?php 
+                    $textColor = $ap['status'] === 'completed' ? '#38a169' : '#000';
+                ?>
                 <div style="display:flex;align-items:center">
                     <span class="dot" style="background:<?= $dotC ?>"></span>
-                    <span style="color:<?= $ap['status']==='pending'?'#999':'#333' ?>; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($ap['phase_name']) ?>">
-                        ขั้นที่ <?= $i+1 ?>: <?= htmlspecialchars($ap['phase_name']) ?> <span style="font-size:0.7rem;color:#777">(<?= $statusTH[$ap['status']] ?>)</span>
+                    <span style="color:<?= $textColor ?>; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($ap['phase_name']) ?>">
+                        ขั้นที่ <?= $i+1 ?>: <?= htmlspecialchars($ap['phase_name']) ?> <span style="font-size:0.7rem;color:<?= $textColor ?>">(<?= $statusTH[$ap['status']] ?>)</span>
                     </span>
                 </div>
                 <?php endforeach; ?>
