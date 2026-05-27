@@ -8,6 +8,14 @@ require_once __DIR__ . '/includes/functions.php';
 $project_id = intval($_GET['id'] ?? 0);
 if (!$project_id) { header('Location: index.php'); exit; }
 
+$global_holidays = [];
+try {
+    $stmt = $pdo->query("SELECT holiday_date FROM holidays");
+    $global_holidays = $stmt->fetchAll(PDO::FETCH_COLUMN);
+} catch (Exception $e) {
+    $global_holidays = [];
+}
+
 // Fetch project
 $stmt = $pdo->prepare("SELECT p.*, u.full_name AS owner, u.department FROM projects p JOIN users u ON p.user_id=u.id WHERE p.id=?");
 $stmt->execute([$project_id]);
@@ -173,7 +181,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
         <div class="section-title">📌 รายละเอียดความคืบหน้ากิจกรรมย่อย (8 ขั้นตอนปฏิบัติ)</div>
         <?php foreach ($activities as $idx => $act): 
             $act_pct = round(($act['completed_phases'] / 8) * 100);
-            $act_ph = $pdo->prepare("SELECT phase_name, status FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
+            $act_ph = $pdo->prepare("SELECT phase_name, status, deadline_date, completed_date FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
             $act_ph->execute([$act['id']]);
             $aphases = $act_ph->fetchAll();
         ?>
@@ -187,12 +195,22 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                     $dotC = ['pending'=>'#cbd5e0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$ap['status']];
                 ?>
                 <?php 
-                    $textColor = $ap['status'] === 'completed' ? '#38a169' : '#000';
+                    $isLatePhase = false;
+                    $daysLateCount = 0;
+                    if ($ap['status'] === 'completed' && $ap['deadline_date'] && $ap['completed_date'] && $ap['completed_date'] > $ap['deadline_date']) {
+                        $daysLateCount = getWorkingDays($ap['deadline_date'], $ap['completed_date'], $global_holidays);
+                        $isLatePhase = $daysLateCount > 0;
+                    }
+                    $textColor = $ap['status'] === 'completed' ? ($isLatePhase ? '#b7791f' : '#38a169') : '#000';
+                    $statusLabel = $statusTH[$ap['status']];
+                    if ($isLatePhase) {
+                        $statusLabel .= " - ล่าช้า $daysLateCount วัน";
+                    }
                 ?>
                 <div style="display:flex;align-items:center">
-                    <span class="dot" style="background:<?= $dotC ?>"></span>
+                    <span class="dot" style="background:<?= $isLatePhase ? '#ecc94b' : $dotC ?>"></span>
                     <span style="color:<?= $textColor ?>; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($ap['phase_name']) ?>">
-                        ขั้นที่ <?= $i+1 ?>: <?= htmlspecialchars($ap['phase_name']) ?> <span style="font-size:0.7rem;color:<?= $textColor ?>">(<?= $statusTH[$ap['status']] ?>)</span>
+                        ขั้นที่ <?= $i+1 ?>: <?= htmlspecialchars($ap['phase_name']) ?> <span style="font-size:0.7rem;color:<?= $textColor ?>">(<?= $statusLabel ?>)</span>
                     </span>
                 </div>
                 <?php endforeach; ?>

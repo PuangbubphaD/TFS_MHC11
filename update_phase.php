@@ -40,7 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrfOrDie();
     $status         = $_POST['status'] ?? $phase['status'];
     $notes          = trim($_POST['notes'] ?? '');
-    $completed_date = ($status === 'completed') ? (date('Y-m-d')) : null;
+    
+    // User can manually set the update/completed date.
+    $input_date     = trim($_POST['completed_date'] ?? '');
+    $completed_date = !empty($input_date) ? $input_date : null;
+    
+    // If status is completed but no date was provided, default to today.
+    if ($status === 'completed' && !$completed_date) {
+        $completed_date = date('Y-m-d');
+    }
 
     $table = ($type === 'activity') ? 'activity_phases' : 'project_phases';
     $stmt = $pdo->prepare("UPDATE $table SET status=?, notes=?, completed_date=? WHERE id=?");
@@ -99,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?= htmlspecialchars($phase['description']) ?>
                     </div>
                 </div>
-                <div class="form-row form-row-2">
+                <div class="form-row form-row-3">
                     <div class="form-group">
                         <label>สถานะ</label>
                         <select name="status" class="form-control">
@@ -113,6 +121,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label>กำหนดการ</label>
                         <input type="text" class="form-control" readonly
                                value="<?= $phase['deadline_date'] ? thaiDate($phase['deadline_date']) : 'ไม่ได้ระบุ' ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่อัปเดต/เสร็จสิ้น</label>
+                        <input type="date" name="completed_date" class="form-control"
+                               value="<?= $phase['completed_date'] ?? date('Y-m-d') ?>">
                     </div>
                 </div>
                 <div class="form-group">

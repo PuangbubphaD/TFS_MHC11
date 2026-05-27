@@ -137,7 +137,7 @@ $statusColors = ['pending'=>'#ccc','in_progress'=>'var(--status-blue)','complete
                                 <?php endif; ?>
                             </div>
                             <div style="display:flex;gap:0.5rem">
-                                <?= getStatusBadge($ph['status'], $ph['deadline_date'], $global_holidays) ?>
+                                <?= getStatusBadge($ph['status'], $ph['deadline_date'], $global_holidays, $ph['completed_date']) ?>
                                 <?php if ($canEdit): ?>
                                 <a href="update_phase.php?id=<?= $ph['id'] ?>&type=activity" class="btn btn-outline btn-sm">✏️ อัปเดต</a>
                                 <?php endif; ?>
@@ -152,8 +152,24 @@ $statusColors = ['pending'=>'#ccc','in_progress'=>'var(--status-blue)','complete
                                 <?php endif; ?>
                             </span>
                             <?php endif; ?>
-                            <?php if ($ph['completed_date']): ?>
-                            <span class="text-success">✅ เสร็จ: <?= thaiDate($ph['completed_date']) ?></span>
+                            <?php if ($ph['completed_date']): 
+                                $isLate = false;
+                                $daysLateCount = 0;
+                                if ($ph['status'] === 'completed' && $ph['deadline_date'] && $ph['completed_date'] > $ph['deadline_date']) {
+                                    $daysLateCount = getWorkingDays($ph['deadline_date'], $ph['completed_date'], $global_holidays);
+                                    $isLate = $daysLateCount > 0;
+                                }
+                            ?>
+                            <span style="color:<?= $isLate ? '#b7791f' : ($ph['status'] === 'completed' ? 'var(--status-green)' : 'var(--status-blue)') ?>;font-weight:600;margin-left:0.5rem">
+                                <?php if ($ph['status'] === 'completed'): ?>
+                                    ✅ เสร็จสิ้นเมื่อ: <?= thaiDate($ph['completed_date']) ?>
+                                    <?php if ($isLate): ?>
+                                        <span style="background:var(--status-yellow);color:#fff;padding:0.1rem 0.4rem;border-radius:4px;font-size:0.75rem;margin-left:0.3rem">(ล่าช้า <?= $daysLateCount ?> วัน)</span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    🗓️ อัปเดตล่าสุด: <?= thaiDate($ph['completed_date']) ?>
+                                <?php endif; ?>
+                            </span>
                             <?php endif; ?>
                         </div>
                         <?php if ($ph['notes']): ?>

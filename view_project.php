@@ -89,7 +89,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                         <div style="display:flex;justify-content:space-between;align-items:center">
                             <span style="font-weight:700"><?= htmlspecialchars($ph['phase_name']) ?></span>
                             <div style="display:flex;gap:0.5rem">
-                                <?= getStatusBadge($ph['status'], $ph['deadline_date'], $global_holidays) ?>
+                                <?= getStatusBadge($ph['status'], $ph['deadline_date'], $global_holidays, $ph['completed_date']) ?>
                                 <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
                                 <a href="update_phase.php?id=<?= $ph['id'] ?>&type=project" class="btn btn-outline btn-sm">อัปเดต</a>
                                 <?php endif; ?>
@@ -105,6 +105,25 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                             กำหนด: <?= thaiDate($ph['deadline_date']) ?>
                             <?php if ($ph['status'] !== 'completed'): ?>
                                 (<?= $daysLeft >= 0 ? "เหลือ $daysLeft วันทำการ" : 'เกินกำหนด ' . abs($daysLeft) . ' วันทำการ' ?>)
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ($ph['completed_date']): 
+                            $isLate = false;
+                            $daysLateCount = 0;
+                            if ($ph['status'] === 'completed' && $ph['deadline_date'] && $ph['completed_date'] > $ph['deadline_date']) {
+                                $daysLateCount = getWorkingDays($ph['deadline_date'], $ph['completed_date'], $global_holidays);
+                                $isLate = $daysLateCount > 0;
+                            }
+                        ?>
+                        <div style="font-size:0.75rem;color:<?= $isLate ? '#b7791f' : ($ph['status'] === 'completed' ? 'var(--status-green)' : 'var(--status-blue)') ?>;font-weight:600;margin-top:0.2rem">
+                            <?php if ($ph['status'] === 'completed'): ?>
+                                เสร็จสิ้นเมื่อ: <?= thaiDate($ph['completed_date']) ?>
+                                <?php if ($isLate): ?>
+                                    <span style="background:var(--status-yellow);color:#fff;padding:0.1rem 0.4rem;border-radius:4px;font-size:0.7rem">(ล่าช้า <?= $daysLateCount ?> วัน)</span>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                อัปเดตล่าสุด: <?= thaiDate($ph['completed_date']) ?>
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>
@@ -173,7 +192,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                     <?php foreach ($activities as $act): 
                         $act_pct = round(($act['completed_phases'] / 8) * 100);
                         // Fetch the 8 phases status for this activity
-                        $act_ph = $pdo->prepare("SELECT id, status FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
+                        $act_ph = $pdo->prepare("SELECT id, status, deadline_date, completed_date FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
                         $act_ph->execute([$act['id']]);
                         $act_phases_list = $act_ph->fetchAll();
                     ?>
@@ -195,12 +214,18 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                         for ($i=0; $i<8; $i++): 
                             $ph_item = $act_phases_list[$i] ?? null;
                             $st = $ph_item['status'] ?? 'pending';
-                            $dotColor = ['pending'=>'#e2e8f0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$st];
+                            // Check for late completion
+                            $isLatePhase = false;
+                            if ($st === 'completed' && $ph_item && $ph_item['deadline_date'] && $ph_item['completed_date'] && $ph_item['completed_date'] > $ph_item['deadline_date']) {
+                                $isLatePhase = getWorkingDays($ph_item['deadline_date'], $ph_item['completed_date'], $global_holidays) > 0;
+                            }
+                            $dotColor = $isLatePhase ? '#ecc94b' : (['pending'=>'#e2e8f0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$st] ?? '#e2e8f0');
                             $ph_link = $ph_item ? "update_phase.php?id={$ph_item['id']}&type=activity" : "#";
                             $pname = $phase_names[$i];
+                            $titleSuffix = $isLatePhase ? ' (ล่าช้า)' : '';
                         ?>
                         <td style="text-align:center;padding:0.25rem">
-                            <a href="<?= $ph_link ?>" title="<?= $pname ?> (<?= $statusTH[$st] ?? $st ?>)" style="text-decoration:none">
+                            <a href="<?= $ph_link ?>" title="<?= $pname ?> (<?= $statusTH[$st] ?? $st ?><?= $titleSuffix ?>)" style="text-decoration:none">
                                 <div style="width:12px;height:12px;border-radius:50%;background:<?= $dotColor ?>;margin:0 auto;border:1px solid rgba(0,0,0,0.1)"></div>
                             </a>
                         </td>
@@ -226,7 +251,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
             <?php foreach ($activities as $act): 
                 $act_pct = round(($act['completed_phases'] / 8) * 100);
                 // Fetch the 8 phases status for this activity
-                $act_ph = $pdo->prepare("SELECT id, status FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
+                $act_ph = $pdo->prepare("SELECT id, status, deadline_date, completed_date FROM activity_phases WHERE activity_id=? ORDER BY phase_number");
                 $act_ph->execute([$act['id']]);
                 $act_phases_list = $act_ph->fetchAll();
                 
@@ -290,15 +315,21 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                         for ($i=0; $i<8; $i++): 
                             $ph_item = $act_phases_list[$i] ?? null;
                             $st = $ph_item['status'] ?? 'pending';
-                            $dotColor = ['pending'=>'#e2e8f0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$st];
-                            $textColor = ($st === 'pending') ? 'var(--text-muted)' : '#fff';
+                            // Check for late completion
+                            $isLatePhase = false;
+                            if ($st === 'completed' && $ph_item && $ph_item['deadline_date'] && $ph_item['completed_date'] && $ph_item['completed_date'] > $ph_item['deadline_date']) {
+                                $isLatePhase = getWorkingDays($ph_item['deadline_date'], $ph_item['completed_date'], $global_holidays) > 0;
+                            }
+                            $dotColor = $isLatePhase ? '#ecc94b' : (['pending'=>'#e2e8f0','in_progress'=>'#3182ce','completed'=>'#38a169','overdue'=>'#e53e3e'][$st] ?? '#e2e8f0');
+                            $textColor = ($st === 'pending') ? 'var(--text-muted)' : ($isLatePhase ? '#000' : '#fff');
                             $ph_link = $ph_item ? "update_phase.php?id={$ph_item['id']}&type=activity" : "#";
                             $pname = $phase_names[$i];
+                            $titleSuffix = $isLatePhase ? ' (ล่าช้า)' : '';
                         ?>
-                        <a href="<?= $ph_link ?>" title="<?= $pname ?> (<?= $statusTH[$st] ?? $st ?>)" style="text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; background:<?= $dotColor ?>; border-radius:8px; padding:0.4rem 0.25rem; min-height:42px; border:1px solid rgba(0,0,0,0.05); transition:transform 0.15s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <a href="<?= $ph_link ?>" title="<?= $pname ?> (<?= $statusTH[$st] ?? $st ?><?= $titleSuffix ?>)" style="text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center; background:<?= $dotColor ?>; border-radius:8px; padding:0.4rem 0.25rem; min-height:42px; border:1px solid rgba(0,0,0,0.05); transition:transform 0.15s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                             <span style="font-size:0.8rem; font-weight:800; color:<?= $textColor ?>;"><?= $i+1 ?></span>
                             <span style="font-size:0.55rem; font-weight:700; color:<?= $textColor ?>; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; max-width:60px;">
-                                <?= $st === 'completed' ? '✓' : ($st === 'in_progress' ? '⚡' : ($st === 'overdue' ? '⏳' : '-')) ?>
+                                <?= $st === 'completed' ? ($isLatePhase ? '⚠️' : '✓') : ($st === 'in_progress' ? '⚡' : ($st === 'overdue' ? '⏳' : '-')) ?>
                             </span>
                         </a>
                         <?php endfor; ?>
@@ -320,6 +351,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
             <div style="display:flex;align-items:center;gap:0.3rem"><div style="width:10px;height:10px;border-radius:50%;background:#e2e8f0"></div> รอดำเนินการ</div>
             <div style="display:flex;align-items:center;gap:0.3rem"><div style="width:10px;height:10px;border-radius:50%;background:#3182ce"></div> กำลังดำเนินการ</div>
             <div style="display:flex;align-items:center;gap:0.3rem"><div style="width:10px;height:10px;border-radius:50%;background:#38a169"></div> เสร็จสิ้น</div>
+            <div style="display:flex;align-items:center;gap:0.3rem"><div style="width:10px;height:10px;border-radius:50%;background:#ecc94b"></div> เสร็จสิ้น (ล่าช้า)</div>
             <div style="display:flex;align-items:center;gap:0.3rem"><div style="width:10px;height:10px;border-radius:50%;background:#e53e3e"></div> เกินกำหนด</div>
         </div>
         <?php endif; ?>

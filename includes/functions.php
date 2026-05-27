@@ -44,7 +44,7 @@ function getWorkingDays(string $startDate, string $endDate, array $holidays = []
 /**
  * Get status badge HTML based on deadline and current status (excludes weekends & public holidays)
  */
-function getStatusBadge(string $status, ?string $deadline = null, array $holidays = []): string {
+function getStatusBadge(string $status, ?string $deadline = null, array $holidays = [], ?string $completed_date = null): string {
     $labels = [
         'pending'     => 'รอดำเนินการ',
         'in_progress' => 'กำลังดำเนินการ',
@@ -74,6 +74,19 @@ function getStatusBadge(string $status, ?string $deadline = null, array $holiday
         $daysLeft = getWorkingDays(date('Y-m-d'), $deadline, $holidays);
         if ($daysLeft < 0) {
             $status = 'overdue';
+        }
+    }
+
+    // Check for late completion (Option 1)
+    if ($status === 'completed' && $deadline && $completed_date) {
+        if ($completed_date > $deadline) {
+            $daysLate = getWorkingDays($deadline, $completed_date, $holidays);
+            if ($daysLate > 0) {
+                $label = "เสร็จสิ้น (ล่าช้า $daysLate วัน)";
+                $color = 'var(--status-yellow)';
+                // Use white text for yellow background as requested
+                return "<span class=\"badge\" style=\"background:$color; color:#fff;\">$label</span>";
+            }
         }
     }
 

@@ -1,0 +1,22 @@
+# TrackPro - Uploads Directory Security Rules
+# Prevent execution of any scripts in the upload folder
+
+# 1. Deny access to any script files
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|pl|py|jsp|asp|sh|cgi)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Deny,Allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 2. Remove handlers to prevent execution in case files bypass the rule above
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .pl .py .jsp .asp .sh .cgi
+    RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .pl .py .jsp .asp .sh .cgi
+</IfModule>
+
+# 3. Prevent directory listing
+Options -Indexes
