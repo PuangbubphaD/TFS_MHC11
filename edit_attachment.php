@@ -122,7 +122,7 @@ $is_img = isImage($attachment['file_name']);
                 <li style="margin-bottom:0.5rem"><strong>ชื่อไฟล์ที่แสดงผล:</strong> <?= htmlspecialchars($attachment['file_name']) ?></li>
                 <li style="margin-bottom:0.5rem"><strong>ประเภทไฟล์:</strong> <?= htmlspecialchars($attachment['file_type'] ?? '-') ?></li>
                 <li style="margin-bottom:0.5rem"><strong>ขนาดไฟล์:</strong> <?= number_format(($attachment['file_size'] ?? 0) / 1024, 2) ?> KB</li>
-                <li style="margin-bottom:0.5rem"><strong>วันที่อัปโหลด:</strong> <?= date('d/m/Y H:i:s', strtotime($attachment['uploaded_at'])) ?></li>
+                <li style="margin-bottom:0.5rem"><strong>อัปโหลดเมื่อ:</strong> <?= thaiDateTime($attachment['uploaded_at']) ?></li>
             </ul>
         </div>
 

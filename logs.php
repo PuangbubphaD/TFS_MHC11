@@ -107,7 +107,7 @@ $users = $pdo->query("SELECT id, full_name, username FROM users ORDER BY full_na
                     <tbody>
                         <?php foreach ($logs as $log): ?>
                             <tr>
-                                <td data-label="วันเวลา" style="font-size:0.82rem; white-space:nowrap"><?= date('d/m/Y H:i:s', strtotime($log['created_at'])) ?></td>
+                                <td data-label="เวลาที่บันทึก" style="font-size:0.82rem; white-space:nowrap"><?= thaiDateTime($log['created_at']) ?></td>
                                 <td data-label="ผู้ใช้งาน">
                                     <?php if ($log['user_id']): ?>
                                         <strong><?= htmlspecialchars($log['full_name']) ?></strong>

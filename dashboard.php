@@ -167,6 +167,10 @@ $monthlySpend = $pdo->query("
     GROUP BY ym, label
     ORDER BY ym
 ")->fetchAll();
+
+foreach ($monthlySpend as &$spend) {
+    $spend['label'] = thaiMonthYear($spend['ym'] . '-01');
+}
 ?>
 
 <div class="topbar">
@@ -174,7 +178,7 @@ $monthlySpend = $pdo->query("
         <button class="mobile-toggle">☰</button>
         <div>
         <h2>📊 Dashboard ภาพรวม</h2>
-        <div class="topbar-breadcrumb">Real-time | อัปเดต: <?= date('d/m/Y H:i') ?></div>
+        <div class="topbar-breadcrumb">Real-time | ข้อมูล ณ: <?= thaiDateTime(date('Y-m-d H:i:s')) ?></div>
     </div>
     </div>
     <a href="index.php" class="btn btn-outline">🏠 โครงการของฉัน</a>

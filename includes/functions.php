@@ -122,6 +122,32 @@ function thaiDate(?string $date): string {
 }
 
 /**
+ * Format Thai date with time
+ */
+function thaiDateTime(?string $date): string {
+    if (!$date) return '-';
+    $months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+               'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    $d = date('j', strtotime($date));
+    $m = $months[(int)date('n', strtotime($date))];
+    $y = (int)date('Y', strtotime($date)) + 543;
+    $time = date('H:i', strtotime($date));
+    return "$d $m $y $time";
+}
+
+/**
+ * Format Thai month and year only
+ */
+function thaiMonthYear(?string $date): string {
+    if (!$date) return '-';
+    $months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+               'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    $m = $months[(int)date('n', strtotime($date))];
+    $y = (int)date('Y', strtotime($date)) + 543;
+    return "$m $y";
+}
+
+/**
  * Format money in Thai Baht
  */
 function formatBaht(float $amount): string {
