@@ -81,6 +81,8 @@ $phaseStats = $pdo->query("
         UNION ALL
         SELECT CASE
             WHEN ap.status = 'completed' AND ap.completed_date > ap.deadline_date THEN 'completed_late'
+            WHEN ap.status = 'completed' THEN 'completed'
+            WHEN ap.deadline_date < CURDATE() THEN 'overdue'
             ELSE ap.status
         END AS status_key
         FROM activity_phases ap
@@ -878,15 +880,16 @@ const phaseStats = <?= json_encode($phaseStats) ?>;
 new Chart(document.getElementById('phaseChart'), {
     type: 'doughnut',
     data: {
-        labels: ['รอดำเนินการ','กำลังดำเนิน','เสร็จสิ้น','เกินกำหนด'],
+        labels: ['รอดำเนินการ','กำลังดำเนิน','เสร็จสิ้น (ตรงเวลา)','เสร็จสิ้น (ล่าช้า)','เกินกำหนด'],
         datasets: [{
             data: [
                 phaseStats['pending'] || 0,
                 phaseStats['in_progress'] || 0,
                 phaseStats['completed'] || 0,
+                phaseStats['completed_late'] || 0,
                 phaseStats['overdue'] || 0
             ],
-            backgroundColor: ['#cbd5e0','#3182ce','#38a169','#e53e3e'],
+            backgroundColor: ['#cbd5e0','#3182ce','#38a169','#ecc94b','#e53e3e'],
             borderWidth: 2, borderColor: '#fff'
         }]
     },
