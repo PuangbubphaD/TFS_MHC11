@@ -80,7 +80,8 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
         @media print { 
             .no-print { display:none; } 
             body, th, td, p, div, span, strong, h1, h2, h3, h4, h5, h6 { color: #000 !important; }
-            .status-tag { color: #fff !important; }
+            .status-tag { background: none !important; color: #000 !important; border: 1px solid #000 !important; }
+            .status-tag.status-completed { color: #38a169 !important; border-color: #38a169 !important; }
             .project-title-box { background: none !important; color: #000 !important; border: 1px solid #000 !important; padding: 0.5rem !important; margin-bottom: 0.5rem !important; border-radius:6px; }
             .section-title { color: #000 !important; border-left-color: #000 !important; margin-bottom: 0.4rem !important; font-size: 0.95rem; }
             .dot { border-color: #000 !important; }
@@ -145,7 +146,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                 ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($ph['phase_name']) ?></strong></td>
-                    <td><span class="status-tag" style="background:<?= $sc ?>"><?= $statusTH[$ph['status']] ?></span></td>
+                    <td><span class="status-tag status-<?= $ph['status'] ?>" style="background:<?= $sc ?>"><?= $statusTH[$ph['status']] ?></span></td>
                     <td><?= $ph['deadline_date'] ? thaiDate($ph['deadline_date']) : '-' ?></td>
                     <td><?= $ph['completed_date'] ? thaiDate($ph['completed_date']) : '-' ?></td>
                     <td style="font-size:0.75rem"><?= htmlspecialchars($ph['notes'] ?: '-') ?></td>
