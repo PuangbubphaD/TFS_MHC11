@@ -239,24 +239,16 @@ $monthlySpend = $pdo->query("
         <div class="stat-card fade-in" style="border-color:var(--primary-light)">
             <div class="stat-icon" style="background:rgba(107,70,193,0.1);font-size:1.8rem">👥</div>
             <div class="stat-info" style="flex:1; min-width:0; overflow:hidden; container-type: inline-size;">
-                <div class="value" style="color:var(--primary);display:flex;flex-direction:column;gap:0.1rem;letter-spacing:-0.3px;line-height:1.2;">
+                <div class="value" style="color:var(--primary);">
                     <span style="font-size: clamp(0.85rem, 16cqi, 1.15rem); font-weight: 800;"><?= number_format($totals['total_actual_participants']) ?></span>
-                    <span style="font-size:0.85rem;letter-spacing:0;font-weight:bold;">คน</span>
                 </div>
-                <div class="label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:0.2rem;">ผู้เข้าร่วม</div>
-                <div style="margin-top:0.4rem; width:100%;">
-                    <?php 
-                    $reach_pct = $totals['total_planned_participants'] > 0 ? round(($totals['total_actual_participants'] / $totals['total_planned_participants']) * 100) : 0;
-                    ?>
-                    <div style="font-size:0.68rem; color:var(--text-muted); margin-bottom:0.15rem;">
-                        เป้าหมาย: <?= number_format($totals['total_planned_participants']) ?> คน
-                    </div>
-                    <div class="progress-wrap" style="height:5px; margin:0; background:#edf2f7;">
-                        <div class="progress-bar" style="width:<?= min($reach_pct, 100) ?>%; background:linear-gradient(to right, #6b46c1, #00acc1);"></div>
-                    </div>
-                    <div style="font-size:0.65rem; color:var(--text-muted); margin-top:0.15rem; text-align:right;">
-                        <?= $reach_pct ?>%
-                    </div>
+                <div class="label" style="margin-top:0.2rem;">ผู้เข้าร่วม</div>
+                <?php 
+                $reach_pct = $totals['total_planned_participants'] > 0 ? round(($totals['total_actual_participants'] / $totals['total_planned_participants']) * 100) : 0;
+                ?>
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:0.3rem; line-height:1.5;">
+                    <div>เป้าหมาย <?= number_format($totals['total_planned_participants']) ?> คน</div>
+                    <div style="font-weight:700; color:var(--primary);">(<?= $reach_pct ?>%)</div>
                 </div>
             </div>
         </div>
