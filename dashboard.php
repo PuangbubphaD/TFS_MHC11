@@ -76,12 +76,19 @@ $budgetByProject = $pdo->query("
 
 // Phase status distribution (Combined from Project and Activity levels)
 $phaseStats = $pdo->query("
-    SELECT status, COUNT(*) AS cnt FROM (
-        SELECT ph.status FROM project_phases ph JOIN projects p ON ph.project_id = p.id WHERE p.deleted_at IS NULL
+    SELECT status_key, COUNT(*) AS cnt FROM (
+        SELECT ph.status AS status_key FROM project_phases ph JOIN projects p ON ph.project_id = p.id WHERE p.deleted_at IS NULL
         UNION ALL
-        SELECT ap.status FROM activity_phases ap JOIN activities a ON ap.activity_id = a.id JOIN projects p ON a.project_id = p.id WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
+        SELECT CASE
+            WHEN ap.status = 'completed' AND ap.completed_date > ap.deadline_date THEN 'completed_late'
+            ELSE ap.status
+        END AS status_key
+        FROM activity_phases ap
+        JOIN activities a ON ap.activity_id = a.id
+        JOIN projects p ON a.project_id = p.id
+        WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
     ) AS all_phases
-    GROUP BY status
+    GROUP BY status_key
 ")->fetchAll(PDO::FETCH_KEY_PAIR);
 
 // Activity reports recent
