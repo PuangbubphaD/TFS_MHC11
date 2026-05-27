@@ -248,12 +248,14 @@ $monthlySpend = $pdo->query("
                     <?php 
                     $reach_pct = $totals['total_planned_participants'] > 0 ? round(($totals['total_actual_participants'] / $totals['total_planned_participants']) * 100) : 0;
                     ?>
-                    <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-muted); margin-bottom:0.15rem;">
-                        <span>เป้าหมาย: <?= number_format($totals['total_planned_participants']) ?> คน</span>
-                        <span><?= $reach_pct ?>%</span>
+                    <div style="font-size:0.68rem; color:var(--text-muted); margin-bottom:0.15rem;">
+                        เป้าหมาย: <?= number_format($totals['total_planned_participants']) ?> คน
                     </div>
                     <div class="progress-wrap" style="height:5px; margin:0; background:#edf2f7;">
                         <div class="progress-bar" style="width:<?= min($reach_pct, 100) ?>%; background:linear-gradient(to right, #6b46c1, #00acc1);"></div>
+                    </div>
+                    <div style="font-size:0.65rem; color:var(--text-muted); margin-top:0.15rem; text-align:right;">
+                        <?= $reach_pct ?>%
                     </div>
                 </div>
             </div>
