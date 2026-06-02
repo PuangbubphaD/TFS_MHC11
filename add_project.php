@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/header.php';
 
-// Director cannot add projects
 if ($_SESSION['role'] === 'director') {
     header('Location: dashboard.php');
     exit;
