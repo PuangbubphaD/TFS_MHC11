@@ -44,7 +44,7 @@ $reportCount      = count($reports);
 $pct = budgetPercent($totalSpent, $activity['planned_budget']);
 $barColor = $pct >= 90 ? 'var(--status-red)' : ($pct >= 70 ? 'var(--status-yellow)' : 'var(--accent)');
 
-$canEdit = $activity['project_owner'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head','director','admin']);
+$canEdit = $activity['project_owner'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin';
 
 $phaseColors = ['var(--accent)','#f6c90e','#ff6b6b','#51cf66','#00adb5','#ff922b','#cc5de8','#20c997'];
 $statusColors = ['pending'=>'#ccc','in_progress'=>'var(--status-blue)','completed'=>'var(--status-green)','overdue'=>'var(--status-red)'];

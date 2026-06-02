@@ -43,8 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Role-based access check
-    if ($_SESSION['role'] === 'staff' && $activity['project_owner'] != $_SESSION['user_id']) {
+    // Role-based access check: Only owner or admin can update activity status
+    if ($activity['project_owner'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
         http_response_code(403);
         die('Forbidden: You do not have permission to update this activity.');
     }

@@ -51,7 +51,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
     </div>
     </div>
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-        <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
+        <?php if ($project['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
         <a href="add_activity.php?project_id=<?= $project_id ?>" class="btn btn-accent">➕ เพิ่มกิจกรรม</a>
         <a href="edit_project.php?id=<?= $project_id ?>" class="btn btn-outline">✏️ แก้ไขโครงการ</a>
         <?php endif; ?>
@@ -90,7 +90,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                             <span style="font-weight:700"><?= htmlspecialchars($ph['phase_name']) ?></span>
                             <div style="display:flex;gap:0.5rem">
                                 <?= getStatusBadge($ph['status'], $ph['deadline_date'], $global_holidays, $ph['completed_date']) ?>
-                                <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
+                                <?php if ($project['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
                                 <a href="update_phase.php?id=<?= $ph['id'] ?>&type=project" class="btn btn-outline btn-sm">อัปเดต</a>
                                 <?php endif; ?>
                             </div>
@@ -159,7 +159,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
     <div class="card fade-in">
         <div class="card-header">
             <h3>📌 กิจกรรมและขั้นตอนการดำเนินงาน (<?= count($activities) ?>)</h3>
-            <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
+            <?php if ($project['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
             <a href="add_activity.php?project_id=<?= $project_id ?>" class="btn btn-accent btn-sm">➕ เพิ่มกิจกรรม</a>
             <?php endif; ?>
         </div>
@@ -235,7 +235,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
                             <div style="font-size:0.7rem;color:var(--text-muted)">/ <?= formatThaiAmount($act['planned_budget']) ?></div>
                         </td>
                         <td style="text-align:center">
-                            <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
+                            <?php if ($project['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
                             <a href="edit_activity.php?id=<?= $act['id'] ?>" class="btn btn-outline btn-sm" style="padding:0.2rem 0.4rem;font-size:0.75rem" onclick="event.stopPropagation()">✏️</a>
                             <?php endif; ?>
                             <a href="view_activity.php?id=<?= $act['id'] ?>" class="btn btn-outline btn-sm" style="padding:0.2rem 0.4rem;font-size:0.75rem" onclick="event.stopPropagation()">👀</a>
@@ -338,7 +338,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
 
                 <!-- Action Buttons (Minimum Touch Target 40px) -->
                 <div style="display:flex; justify-content:flex-end; gap:0.5rem; border-top:1px solid var(--border); padding-top:0.75rem;">
-                    <?php if ($project['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'],['head','director','admin'])): ?>
+                    <?php if ($project['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
                     <a href="edit_activity.php?id=<?= $act['id'] ?>" class="btn btn-outline" style="padding:0.45rem 1rem; font-size:0.8rem; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; min-height:40px;">✏️ แก้ไข</a>
                     <?php endif; ?>
                     <a href="view_activity.php?id=<?= $act['id'] ?>" class="btn btn-primary" style="padding:0.45rem 1rem; font-size:0.8rem; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; min-height:40px;">👀 ดูรายละเอียด</a>

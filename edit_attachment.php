@@ -21,7 +21,7 @@ if ($attachment['entity_type'] === 'phase') {
     $res = $ps->fetch();
     if ($res) {
         $project_id = $res['id'];
-        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head','director','admin']));
+        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin');
     }
 } elseif ($attachment['entity_type'] === 'activity_phase') {
     $ps = $pdo->prepare("SELECT p.user_id, a.id as activity_id, p.id as project_id FROM activity_phases ph JOIN activities a ON a.id = ph.activity_id JOIN projects p ON p.id = a.project_id WHERE ph.id = ?");
@@ -30,7 +30,7 @@ if ($attachment['entity_type'] === 'phase') {
     if ($res) {
         $project_id = $res['project_id'];
         $activity_id = $res['activity_id'];
-        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head','director','admin']));
+        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin');
     }
 } elseif ($attachment['entity_type'] === 'activity_report') {
     $ps = $pdo->prepare("SELECT p.user_id, a.id as activity_id, p.id as project_id FROM activity_reports ar JOIN activities a ON a.id = ar.activity_id JOIN projects p ON p.id = a.project_id WHERE ar.id = ?");
@@ -39,7 +39,7 @@ if ($attachment['entity_type'] === 'phase') {
     if ($res) {
         $project_id = $res['project_id'];
         $activity_id = $res['activity_id'];
-        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head','director','admin']));
+        $canEdit = ($res['user_id'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin');
     }
 }
 

@@ -9,8 +9,8 @@ $stmt->execute([$project_id]);
 $project = $stmt->fetch();
 if (!$project) { header('Location: index.php'); exit; }
 
-// Only owner or head/director can edit
-if ($_SESSION['role'] === 'staff' && $project['user_id'] != $_SESSION['user_id']) {
+// Only owner or admin can edit
+if ($project['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
     header('Location: index.php'); exit;
 }
 

@@ -35,7 +35,7 @@ if (!$report) {
 }
 
 $activity_id = $report['activity_id'];
-$canEdit = $report['project_owner'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head', 'director', 'admin']);
+$canEdit = $report['project_owner'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin';
 
 // Access check
 if (!$canEdit) {

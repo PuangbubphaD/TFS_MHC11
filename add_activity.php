@@ -9,8 +9,8 @@ $stmt->execute([$project_id]);
 $project = $stmt->fetch();
 if (!$project) { header('Location: index.php'); exit; }
 
-// Access check
-if ($_SESSION['role'] === 'staff' && $project['user_id'] != $_SESSION['user_id']) {
+// Access check: Only owner or admin can add activity
+if ($project['user_id'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
     header('Location: index.php'); exit;
 }
 

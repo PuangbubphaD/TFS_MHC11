@@ -95,7 +95,7 @@ if ($project_id) {
                     <div style="font-size:0.75rem;color:var(--primary);font-weight:700;margin-bottom:0.25rem">
                         <?= htmlspecialchars($img['project_title']) ?>
                     </div>
-                    <?php if ($img['project_owner'] == $_SESSION['user_id'] || in_array($_SESSION['role'], ['head','director','admin'])): ?>
+                    <?php if ($img['project_owner'] == $_SESSION['user_id'] || $_SESSION['role'] === 'admin'): ?>
                     <a href="edit_attachment.php?id=<?= $img['id'] ?>" style="color:var(--text-muted);font-size:0.85rem;text-decoration:none" title="จัดการไฟล์">⚙️</a>
                     <?php endif; ?>
                 </div>

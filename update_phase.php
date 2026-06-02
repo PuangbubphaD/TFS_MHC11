@@ -28,8 +28,8 @@ $stmt->execute([$phase_id]);
 $phase = $stmt->fetch();
 if (!$phase) { header('Location: index.php'); exit; }
 
-// Access check
-if ($_SESSION['role'] === 'staff' && $phase['project_owner'] != $_SESSION['user_id']) {
+// Access check: Only owner or admin can update phase
+if ($phase['project_owner'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
     header('Location: index.php'); exit;
 }
 

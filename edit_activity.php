@@ -12,8 +12,8 @@ $stmt->execute([$activity_id]);
 $activity = $stmt->fetch();
 if (!$activity) { header('Location: index.php'); exit; }
 
-// Access check
-if ($_SESSION['role'] === 'staff' && $activity['project_owner'] != $_SESSION['user_id']) {
+// Access check: Only owner or admin can edit
+if ($activity['project_owner'] != $_SESSION['user_id'] && $_SESSION['role'] !== 'admin') {
     header('Location: index.php'); exit;
 }
 
