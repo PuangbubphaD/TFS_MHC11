@@ -168,9 +168,11 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
         <a href="gallery.php" class="<?= $current_page === 'gallery' ? 'active' : '' ?>">
             <span class="icon">🖼️</span> ประมวลภาพ
         </a>
+        <?php if ($role !== 'director'): ?>
         <a href="add_project.php" class="<?= $current_page === 'add_project' ? 'active' : '' ?>">
             <span class="icon">➕</span> เพิ่มโครงการใหม่
         </a>
+        <?php endif; ?>
 
         <?php if (in_array($role, ['head', 'director', 'admin'])): ?>
         <div class="nav-section">ผู้บริหาร</div>
