@@ -15,6 +15,12 @@ $stmt->execute([$activity_id]);
 $activity = $stmt->fetch();
 if (!$activity) { header('Location: index.php'); exit; }
 
+// Access check: Staff cannot view other people's activities
+if ($_SESSION['role'] === 'staff' && $activity['project_owner'] != $_SESSION['user_id']) {
+    header('Location: index.php');
+    exit;
+}
+
 // Fetch 7 activity phases
 $stmt = $pdo->prepare("SELECT * FROM activity_phases WHERE activity_id=? ORDER BY phase_number ASC");
 $stmt->execute([$activity_id]);

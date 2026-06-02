@@ -157,9 +157,11 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
     </div>
     <nav class="sidebar-nav">
         <div class="nav-section">เมนูหลัก</div>
+        <?php if ($role !== 'director'): ?>
         <a href="index.php" class="<?= $current_page === 'index' ? 'active' : '' ?>">
             <span class="icon">🏠</span> โครงการของฉัน
         </a>
+        <?php endif; ?>
         <a href="activities.php" class="<?= $current_page === 'activities' ? 'active' : '' ?>">
             <span class="icon">📌</span> กิจกรรม
         </a>

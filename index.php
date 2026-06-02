@@ -4,8 +4,13 @@ require_once __DIR__ . '/includes/header.php';
 $uid  = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 
-// For staff: show only own projects. For head/director: show all
-if ($role === 'staff') {
+if ($role === 'director') {
+    header('Location: dashboard.php');
+    exit;
+}
+
+// For staff & head: show only own projects. For admin: show all.
+if (in_array($role, ['staff', 'head'])) {
     $stmt = $pdo->prepare("
         SELECT p.*,
                u.full_name AS owner_name,
@@ -114,7 +119,7 @@ $budget   = array_sum(array_column($projects, 'budget_total'));
                         📅 <?= thaiDate($p['start_date']) ?> <?= $p['end_date'] ? '→ ' . thaiDate($p['end_date']) : '' ?>
                     </div>
                     <h3 style="font-size:1rem;font-weight:700;color:var(--text-main)"><?= htmlspecialchars($p['title']) ?></h3>
-                    <?php if ($role !== 'staff'): ?>
+                    <?php if ($role === 'admin'): ?>
                     <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">👤 <?= htmlspecialchars($p['owner_name']) ?></div>
                     <?php endif; ?>
                 </div>

@@ -41,7 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_name'] = $user['full_name'];
             $_SESSION['username']  = $user['username'];
             $_SESSION['role']      = $user['role'];
-            header('Location: index.php');
+            
+            if ($user['role'] === 'director') {
+                header('Location: dashboard.php');
+            } else {
+                header('Location: index.php');
+            }
             exit;
         } else {
             $error = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
