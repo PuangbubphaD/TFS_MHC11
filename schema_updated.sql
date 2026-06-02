@@ -261,6 +261,9 @@ CREATE TABLE `users` (
   `full_name` varchar(150) NOT NULL,
   `role` enum('staff','head','director','admin') NOT NULL DEFAULT 'staff',
   `department` varchar(100) DEFAULT NULL,
+  `telegram_chat_id` varchar(100) DEFAULT NULL,
+  `discord_webhook_url` varchar(255) DEFAULT NULL,
+  `line_notify_token` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)

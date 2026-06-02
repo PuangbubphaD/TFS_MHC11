@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(150) NOT NULL,
     role ENUM('staff','head','director','admin') NOT NULL DEFAULT 'staff',
     department VARCHAR(100),
+    telegram_chat_id VARCHAR(100) DEFAULT NULL,
+    discord_webhook_url VARCHAR(255) DEFAULT NULL,
+    line_notify_token VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -186,6 +186,9 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
         <a href="users.php" class="<?= $current_page === 'users' ? 'active' : '' ?>">
             <span class="icon">👥</span> จัดการสมาชิก
         </a>
+        <a href="admin_notifications.php" class="<?= $current_page === 'admin_notifications' ? 'active' : '' ?>">
+            <span class="icon">🔔</span> ตั้งค่าแจ้งเตือนระบบ
+        </a>
         <a href="sync_holidays.php" class="<?= $current_page === 'sync_holidays' ? 'active' : '' ?>">
             <span class="icon">📅</span> จัดการวันหยุดและ API
         </a>

@@ -21,13 +21,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action_type === 'update_profile') {
         $full_name  = trim($_POST['full_name'] ?? '');
         $department = trim($_POST['department'] ?? '');
+        $telegram_chat_id = trim($_POST['telegram_chat_id'] ?? '');
+        $discord_webhook_url = trim($_POST['discord_webhook_url'] ?? '');
+        $line_notify_token = trim($_POST['line_notify_token'] ?? '');
 
         if (!$full_name) {
             $error = 'กรุณากรอกชื่อ-นามสกุล';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, department = ? WHERE id = ?");
-                $stmt->execute([$full_name, $department, $user_id]);
+                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, department = ?, telegram_chat_id = ?, discord_webhook_url = ?, line_notify_token = ? WHERE id = ?");
+                $stmt->execute([$full_name, $department, $telegram_chat_id ?: null, $discord_webhook_url ?: null, $line_notify_token ?: null, $user_id]);
 
                 // Update session
                 $_SESSION['user_name'] = $full_name;
@@ -113,6 +116,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label>แผนก/กลุ่มงาน</label>
                     <input type="text" name="department" class="form-control" value="<?= htmlspecialchars($u['department'] ?? '') ?>">
+                </div>
+                
+                <h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; font-size: 1rem; font-weight: 700;">🔔 ตั้งค่าการแจ้งเตือนส่วนบุคคล</h4>
+                <div class="form-group">
+                    <label>Telegram Chat ID</label>
+                    <input type="text" name="telegram_chat_id" class="form-control" value="<?= htmlspecialchars($u['telegram_chat_id'] ?? '') ?>" placeholder="ตัวเลข Chat ID (เช่น 123456789)">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">ทักแชทบอทของระบบเพื่อรับ Chat ID แล้วนำมาป้อนที่นี่เพื่อรับแจ้งเตือนส่วนตัว</small>
+                </div>
+                <div class="form-group">
+                    <label>Discord Webhook URL</label>
+                    <input type="text" name="discord_webhook_url" class="form-control" value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">สร้าง Webhook ใน Discord Channel ส่วนตัวเพื่อรับข้อมูลแจ้งเตือนตรง</small>
+                </div>
+                <div class="form-group">
+                    <label>LINE Notify Token (เตรียมความพร้อมในอนาคต)</label>
+                    <input type="text" name="line_notify_token" class="form-control" value="<?= htmlspecialchars($u['line_notify_token'] ?? '') ?>" placeholder="LINE Notify Token">
                 </div>
                 
                 <button type="submit" class="btn btn-primary" style="margin-top:1rem">💾 บันทึกการเปลี่ยนแปลง</button>
