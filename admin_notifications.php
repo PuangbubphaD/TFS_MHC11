@@ -45,8 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         foreach ($keys as $k => $v) {
-            $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
-            $stmt->execute([$v, $k]);
+            $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+            $stmt->execute([$k, $v, $v]);
         }
         
         $success = 'บันทึกการตั้งค่าระบบแจ้งเตือนเรียบร้อยแล้ว';
