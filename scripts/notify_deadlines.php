@@ -19,6 +19,7 @@ try {
 $botToken = $settings['telegram_bot_token'] ?? '';
 $telegramGroupId = $settings['telegram_group_chat_id'] ?? '';
 $discordGroupWebhook = $settings['discord_group_webhook'] ?? '';
+$discordBotToken = $settings['discord_bot_token'] ?? '';
 
 // Fetch public holidays
 $global_holidays = [];
@@ -35,7 +36,7 @@ try {
     $stmt = $pdo->query("
         SELECT ap.*, a.activity_name, a.planned_start, a.planned_end, 
                p.title AS project_title, u.full_name AS owner_name, 
-               u.telegram_chat_id, u.discord_webhook_url
+               u.telegram_chat_id, u.discord_webhook_url, u.discord_user_id
         FROM activity_phases ap
         JOIN activities a ON a.id = ap.activity_id
         JOIN projects p ON p.id = a.project_id
@@ -97,7 +98,9 @@ foreach ($phases as $ph) {
         if (!empty($ph['telegram_chat_id'])) {
             NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
         }
-        if (!empty($ph['discord_webhook_url'])) {
+        if (!empty($ph['discord_user_id']) && !empty($discordBotToken)) {
+            NotificationService::sendToDiscordDM($msgDiscord, $discordBotToken, $ph['discord_user_id']);
+        } elseif (!empty($ph['discord_webhook_url'])) {
             NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
         }
     } elseif ($today > $deadline) {
@@ -132,7 +135,9 @@ foreach ($phases as $ph) {
         if (!empty($ph['telegram_chat_id'])) {
             NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
         }
-        if (!empty($ph['discord_webhook_url'])) {
+        if (!empty($ph['discord_user_id']) && !empty($discordBotToken)) {
+            NotificationService::sendToDiscordDM($msgDiscord, $discordBotToken, $ph['discord_user_id']);
+        } elseif (!empty($ph['discord_webhook_url'])) {
             NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
         }
     } else {
@@ -166,7 +171,9 @@ foreach ($phases as $ph) {
             if (!empty($ph['telegram_chat_id'])) {
                 NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
             }
-            if (!empty($ph['discord_webhook_url'])) {
+            if (!empty($ph['discord_user_id']) && !empty($discordBotToken)) {
+                NotificationService::sendToDiscordDM($msgDiscord, $discordBotToken, $ph['discord_user_id']);
+            } elseif (!empty($ph['discord_webhook_url'])) {
                 NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
             }
         }

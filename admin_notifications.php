@@ -14,12 +14,14 @@ $error = $success = '';
 $user_id = $_SESSION['user_id'];
 $my_telegram_chat_id = '';
 $my_discord_webhook_url = '';
+$my_discord_user_id = '';
 try {
-    $stmt = $pdo->prepare("SELECT telegram_chat_id, discord_webhook_url FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT telegram_chat_id, discord_webhook_url, discord_user_id FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $me = $stmt->fetch();
     $my_telegram_chat_id = $me['telegram_chat_id'] ?? '';
     $my_discord_webhook_url = $me['discord_webhook_url'] ?? '';
+    $my_discord_user_id = $me['discord_user_id'] ?? '';
 } catch (Exception $e) {
     // ignore
 }
@@ -30,12 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bot_token = trim($_POST['telegram_bot_token'] ?? '');
     $group_id  = trim($_POST['telegram_group_chat_id'] ?? '');
     $webhook   = trim($_POST['discord_group_webhook'] ?? '');
+    $discord_bot_token = trim($_POST['discord_bot_token'] ?? '');
+    $notify_run_time = trim($_POST['notify_run_time'] ?? '08:00');
     
     try {
         $keys = [
             'telegram_bot_token' => $bot_token,
             'telegram_group_chat_id' => $group_id,
-            'discord_group_webhook' => $webhook
+            'discord_group_webhook' => $webhook,
+            'discord_bot_token' => $discord_bot_token,
+            'notify_run_time' => $notify_run_time
         ];
         
         foreach ($keys as $k => $v) {
@@ -103,14 +109,29 @@ try {
 
                 <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0">
 
-                <h4 style="color:var(--primary);margin-bottom:0.75rem">Discord Webhook</h4>
+                <h4 style="color:var(--primary);margin-bottom:0.75rem">Discord Bot & Webhook</h4>
                 <div class="form-group">
-                    <label>Discord Group Webhook URL</label>
+                    <label>Discord Bot Token <span style="font-size:0.75rem;font-weight:normal;color:#666;">(สำหรับส่ง DM หาส่วนตัว)</span></label>
+                    <input type="text" id="discord_bot_token" name="discord_bot_token" class="form-control" 
+                           value="<?= htmlspecialchars($settings['discord_bot_token'] ?? '') ?>" placeholder="ตัวอย่าง: MTIzNDU2... (จาก Discord Developer Portal)">
+                </div>
+                <div class="form-group">
+                    <label>Discord Group Webhook URL <span style="font-size:0.75rem;font-weight:normal;color:#666;">(สำหรับส่งเข้าแชนเนลกลุ่ม)</span></label>
                     <input type="text" id="discord_group_webhook" name="discord_group_webhook" class="form-control" 
                            value="<?= htmlspecialchars($settings['discord_group_webhook'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
                 </div>
                 <button type="button" class="btn btn-outline btn-sm" onclick="testNotification('discord')">🧪 ทดสอบเชื่อมต่อ Discord</button>
                 
+                <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0">
+                
+                <h4 style="color:var(--primary);margin-bottom:0.75rem">ตั้งเวลาแจ้งเตือนรายวัน (Cron Job)</h4>
+                <div class="form-group">
+                    <label>เวลาที่ต้องการให้รันส่งแจ้งเตือน (HH:MM)</label>
+                    <input type="time" name="notify_run_time" class="form-control" style="width: 150px;"
+                           value="<?= htmlspecialchars($settings['notify_run_time'] ?? '08:00') ?>">
+                    <small style="color:var(--text-muted); display:block; margin-top:0.25rem;">เวลาที่ระบบจะตรวจสอบงานและส่งข้อความอัตโนมัติ (ขึ้นอยู่กับการตั้งค่า Server Docker ให้รัน check_and_notify.php ทุกนาทีด้วย)</small>
+                </div>
+
                 <div style="margin-top:2rem; display:flex; gap:1rem">
                     <button type="submit" class="btn btn-primary">💾 บันทึกการตั้งค่า</button>
                 </div>
@@ -128,8 +149,8 @@ try {
                 </ul>
                 <p><strong>2. Discord:</strong></p>
                 <ul style="padding-left:1.25rem">
-                    <li>ไปที่ช่องแชท (Channel) ใน Discord Server ของท่าน -> Edit Channel -> Integrations -> Create Webhook</li>
-                    <li>คัดลอก URL ของ Webhook มากรอกที่ช่อง <strong>Discord Group Webhook URL</strong></li>
+                    <li><strong>สำหรับกลุ่ม (Webhook):</strong> ไปที่ช่องแชท (Channel) ใน Discord Server ของท่าน -> Edit Channel -> Integrations -> Create Webhook แล้วนำ URL มาใส่ด้านซ้าย</li>
+                    <li><strong>สำหรับ DM ส่วนตัว (Bot):</strong> ต้องสร้าง Bot ใน <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a> นำ <strong>Bot Token</strong> มากรอกที่ด้านซ้าย และสมาชิกต้องอยู่ใน Server เดียวกับ Bot พร้อมทั้งกรอก <strong>Discord User ID</strong> ในหน้าตั้งค่าส่วนตัว</li>
                 </ul>
             </div>
         </div>
@@ -178,13 +199,13 @@ try {
                 <?php
                 $phases = [
                     1 => 'ขออนุมัติจัดกิจกรรม',
-                    2 => 'รายงานค่าใช้จ่าย',
-                    3 => 'รายงานผลการดำเนินงาน',
-                    4 => 'แนบไฟล์หลักฐาน',
-                    5 => 'จัดทำ One-page',
-                    6 => 'ส่งข้อมูลเข้าระบบกรม',
-                    7 => 'ติดตามผลการประเมิน',
-                    8 => 'สรุปและปิดโครงการ',
+                    2 => 'ขออนุมัติงบประมาณและพัสดุ',
+                    3 => 'ขออนุมัติบุคลากรและเชิญผู้ร่วม',
+                    4 => 'ดำเนินการจัดกิจกรรม',
+                    5 => 'การจัดทำ onepage',
+                    6 => 'เบิกจ่ายงบประมาณ',
+                    7 => 'สรุปกิจกรรม',
+                    8 => 'ผู้อำนวยการลงนามอนุมัติสรุป',
                 ];
                 $events = [
                     'reminder'  => ['icon' => '⏳', 'label' => 'ล่วงหน้า'],
@@ -240,6 +261,7 @@ try {
 const CSRF_TOKEN = "<?= $_SESSION['csrf_token'] ?? '' ?>";
 const MY_TG_CHAT  = "<?= htmlspecialchars($my_telegram_chat_id) ?>";
 const MY_DC_WH    = "<?= htmlspecialchars($my_discord_webhook_url) ?>";
+const MY_DC_USER  = "<?= htmlspecialchars($my_discord_user_id) ?>";
 
 function showSimStatus(success, msg) {
     const bar = document.getElementById('simStatusBar');
@@ -278,8 +300,13 @@ function simPhase(platform, phaseNum, eventKey, btn) {
             if (!wh) { showSimStatus(false, 'กรุณากรอก Discord Webhook URL ก่อนทดสอบ'); return; }
             data.append('discord_webhook_url', wh);
         } else {
-            if (!MY_DC_WH) { showSimStatus(false, 'กรุณาตั้งค่า Discord Webhook ส่วนตัวในหน้าข้อมูลส่วนตัวก่อน'); return; }
-            data.append('discord_webhook_url', MY_DC_WH);
+            const dcBotToken = document.getElementById('discord_bot_token').value.trim();
+            if (!dcBotToken) { showSimStatus(false, 'กรุณากรอก Discord Bot Token ก่อนทดสอบส่ง DM'); return; }
+            data.append('discord_bot_token', dcBotToken);
+            
+            // Check if admin has discord_user_id (We fetch it from my_discord_user_id variable which we need to define)
+            if (typeof MY_DC_USER === 'undefined' || !MY_DC_USER) { showSimStatus(false, 'กรุณาตั้งค่า Discord User ID ส่วนตัวในหน้าข้อมูลส่วนตัวก่อน'); return; }
+            data.append('discord_user_id', MY_DC_USER);
         }
     }
 

@@ -26,15 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username   = trim($_POST['username'] ?? '');
     $role       = $_POST['role'] ?? 'staff';
     $department = trim($_POST['department'] ?? '');
+    $telegram   = trim($_POST['telegram_chat_id'] ?? '');
+    $discord_wh = trim($_POST['discord_webhook_url'] ?? '');
+    $discord_id = trim($_POST['discord_user_id'] ?? '');
     $password   = $_POST['password'] ?? '';
 
     if (!$full_name || !$username) {
         $error = 'กรุณากรอกชื่อและชื่อผู้ใช้';
     } else {
         try {
-            // Update basic info
-            $stmt = $pdo->prepare("UPDATE users SET full_name=?, username=?, role=?, department=? WHERE id=?");
-            $stmt->execute([$full_name, $username, $role, $department, $user_id]);
+            // Update basic info and notification settings
+            $stmt = $pdo->prepare("UPDATE users SET full_name=?, username=?, role=?, department=?, telegram_chat_id=?, discord_webhook_url=?, discord_user_id=? WHERE id=?");
+            $stmt->execute([$full_name, $username, $role, $department, $telegram, $discord_wh, $discord_id, $user_id]);
 
             // Update password if provided
             if (!empty($password)) {
@@ -95,6 +98,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" name="department" class="form-control" value="<?= htmlspecialchars($u['department']) ?>">
                 </div>
             </div>
+            
+            <h4 style="margin-top:1.5rem; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); color:var(--primary);">
+                🔔 การตั้งค่ารับการแจ้งเตือน
+            </h4>
+            <div class="form-group">
+                <label>Telegram Chat ID</label>
+                <input type="text" name="telegram_chat_id" class="form-control" 
+                       value="<?= htmlspecialchars($u['telegram_chat_id'] ?? '') ?>" 
+                       placeholder="เช่น 123456789 (ไอดีส่วนตัวของผู้ใช้)">
+            </div>
+            <div class="form-group">
+                <label>Discord Webhook URL</label>
+                <input type="url" name="discord_webhook_url" class="form-control" 
+                       value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" 
+                       placeholder="https://discord.com/api/webhooks/...">
+            </div>
+            <div class="form-group">
+                <label>Discord User ID (สำหรับรับ DM จาก Bot)</label>
+                <input type="text" name="discord_user_id" class="form-control" 
+                       value="<?= htmlspecialchars($u['discord_user_id'] ?? '') ?>" 
+                       placeholder="เช่น 123456789012345678">
+            </div>
+            
             <div class="form-group" style="background:#fff5f5;padding:1rem;border-radius:8px;border:1px solid #feb2b2">
                 <label style="color:#c53030">🔑 เปลี่ยนรหัสผ่านใหม่ (เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</label>
                 <input type="password" name="password" class="form-control" placeholder="ระบุรหัสผ่านใหม่ที่นี่">

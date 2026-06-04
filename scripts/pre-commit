@@ -1,0 +1,14 @@
+#!/bin/bash
+# Pre-commit hook to prevent committing local DB config files
+# This script checks staged files for any db.local.php include and aborts the commit.
+
+# Get list of staged files
+git diff --cached --name-only | while read file; do
+  if [[ "$file" == *"db.local.php" ]]; then
+    echo "Error: Attempting to commit forbidden file '$file'." >&2
+    echo "Please remove it from the commit or add it to .gitignore." >&2
+    exit 1
+  fi
+done
+
+exit 0

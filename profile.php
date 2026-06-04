@@ -32,14 +32,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $department = trim($_POST['department'] ?? '');
         $telegram_chat_id = trim($_POST['telegram_chat_id'] ?? '');
         $discord_webhook_url = trim($_POST['discord_webhook_url'] ?? '');
+        $discord_user_id = trim($_POST['discord_user_id'] ?? '');
         $line_notify_token = trim($_POST['line_notify_token'] ?? '');
 
         if (!$full_name) {
             $error = 'กรุณากรอกชื่อ-นามสกุล';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, department = ?, telegram_chat_id = ?, discord_webhook_url = ?, line_notify_token = ? WHERE id = ?");
-                $stmt->execute([$full_name, $department, $telegram_chat_id ?: null, $discord_webhook_url ?: null, $line_notify_token ?: null, $user_id]);
+                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, department = ?, telegram_chat_id = ?, discord_webhook_url = ?, discord_user_id = ?, line_notify_token = ? WHERE id = ?");
+                $stmt->execute([$full_name, $department, $telegram_chat_id ?: null, $discord_webhook_url ?: null, $discord_user_id ?: null, $line_notify_token ?: null, $user_id]);
 
                 // Update session
                 $_SESSION['user_name'] = $full_name;
@@ -139,10 +140,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label>Discord Webhook URL</label>
                     <div style="display:flex; gap:0.5rem">
-                        <input type="text" id="discord_webhook_url" name="discord_webhook_url" class="form-control" value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="testPersonalNotification('discord')">🧪 ทดสอบ</button>
+                        <input type="text" id="discord_webhook_url" name="discord_webhook_url" class="form-control" value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/... (สำหรับ Private Channel)">
                     </div>
-                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">สร้าง Webhook ใน Discord Channel ส่วนตัวเพื่อรับข้อมูลแจ้งเตือนตรง</small>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">สร้าง Webhook ใน Discord Channel ส่วนตัวเพื่อรับข้อมูลแจ้งเตือน</small>
+                </div>
+                <div class="form-group">
+                    <label>Discord User ID (สำหรับรับ DM จาก Bot)</label>
+                    <div style="display:flex; gap:0.5rem">
+                        <input type="text" id="discord_user_id" name="discord_user_id" class="form-control" value="<?= htmlspecialchars($u['discord_user_id'] ?? '') ?>" placeholder="เลข User ID เช่น 123456789012345678">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="testPersonalNotification('discord')">🧪 ทดสอบ DM</button>
+                    </div>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">เปิด Developer Mode ใน Discord -> คลิกขวาที่ชื่อตัวเอง -> Copy User ID</small>
                 </div>
                 <div class="form-group">
                     <label>LINE Notify Token (เตรียมความพร้อมในอนาคต)</label>

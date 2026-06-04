@@ -37,6 +37,8 @@ $chatId   = $_POST['telegram_chat_id']   ?? '';
 
 // Discord params
 $webhookUrl = $_POST['discord_webhook_url'] ?? '';
+$discordBotToken = $_POST['discord_bot_token'] ?? '';
+$discordUserId   = $_POST['discord_user_id'] ?? '';
 
 $event = $_POST['event'] ?? ''; // 'reminder', 'due_today', 'overdue'
 $phase = intval($_POST['phase'] ?? 1); // 1-8
@@ -137,19 +139,28 @@ if ($type === 'telegram') {
 }
 
 if ($type === 'discord') {
-    if (empty($webhookUrl)) {
-        echo json_encode(['success' => false, 'message' => 'กรุณาระบุ Webhook URL สำหรับการส่งข้อความ']);
-        exit;
+    $strippedMessage = strip_tags($message);
+    
+    if ($target === 'personal' && !empty($discordBotToken) && !empty($discordUserId)) {
+        // Send via DM
+        $res = NotificationService::sendToDiscordDM($strippedMessage, $discordBotToken, $discordUserId);
+    } else {
+        // Send via Webhook
+        if (empty($webhookUrl)) {
+            echo json_encode(['success' => false, 'message' => 'กรุณาระบุ Webhook URL สำหรับการส่งข้อความ']);
+            exit;
+        }
+        $res = NotificationService::sendToDiscord($strippedMessage, $webhookUrl);
     }
     
-    $res = NotificationService::sendToDiscord(strip_tags($message), $webhookUrl);
-    
     // Discord Webhook returns empty string on success (204 No Content)
+    // Discord DM returns a JSON object on success
     if ($res === '' || $res === false || empty($res)) {
         echo json_encode(['success' => true, 'message' => 'ส่งข้อความทดสอบไปยัง Discord สำเร็จ!']);
     } else {
         $resDecoded = json_decode($res, true);
-        if (isset($resDecoded['message'])) {
+        // Checking if we got an error object from discord api
+        if (isset($resDecoded['message']) && !isset($resDecoded['id'])) {
             echo json_encode(['success' => false, 'message' => 'ส่งข้อความทดสอบล้มเหลว: ' . $resDecoded['message']]);
         } else {
             echo json_encode(['success' => true, 'message' => 'ส่งข้อความทดสอบไปยัง Discord สำเร็จ!']);
