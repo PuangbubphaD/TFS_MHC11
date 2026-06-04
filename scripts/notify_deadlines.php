@@ -70,23 +70,35 @@ foreach ($phases as $ph) {
         // Due today
         $due_today_tasks[] = $ph;
         
-        // Personal notification
-        $msg = "⚠️ *[ด่วนที่สุด! ครบกำหนดส่งงานวันนี้]*\n"
+        // Personal notification (HTML for Telegram)
+        $msg = "⚠️ <b>[ด่วนที่สุด! ครบกำหนดส่งงานวันนี้]</b>\n"
              . "-----------------------------------------------\n"
-             . "📌 *โครงการ:* $projectTitle\n"
-             . "💼 *กิจกรรม:* $activityName\n"
-             . "🔄 *ขั้นตอนย่อย:* ขั้นตอนที่ $phaseNum - $phaseName\n"
-             . "👤 *ผู้รับผิดชอบ:* $ownerName\n\n"
-             . "🚨 *สถานะ:* ครบกำหนดวันนี้และยังไม่บันทึกความสำเร็จ!\n"
-             . "📅 *กำหนดส่ง:* วันนี้ (" . thaiDate($deadline) . ")\n\n"
+             . "📌 <b>โครงการ:</b> $projectTitle\n"
+             . "💼 <b>กิจกรรม:</b> $activityName\n"
+             . "🔄 <b>ขั้นตอนย่อย:</b> ขั้นตอนที่ $phaseNum - $phaseName\n"
+             . "👤 <b>ผู้รับผิดชอบ:</b> $ownerName\n\n"
+             . "🚨 <b>สถานะ:</b> ครบกำหนดวันนี้และยังไม่บันทึกความสำเร็จ!\n"
+             . "📅 <b>กำหนดส่ง:</b> วันนี้ (" . thaiDate($deadline) . ")\n\n"
              . "💡 ขอความกรุณาเร่งบันทึกข้อมูลและแนบไฟล์หลักฐานลงในระบบ TFS ภายในวันนี้ด้วยนะคะ\n"
-             . "🔗 *ลิงก์ระบบ:* https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+             . "🔗 <b>ลิงก์ระบบ:</b> https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+             
+        // Plain text for Discord
+        $msgDiscord = "⚠️ [ด่วนที่สุด! ครบกำหนดส่งงานวันนี้]\n"
+             . "-----------------------------------------------\n"
+             . "📌 โครงการ: $projectTitle\n"
+             . "💼 กิจกรรม: $activityName\n"
+             . "🔄 ขั้นตอนย่อย: ขั้นตอนที่ $phaseNum - $phaseName\n"
+             . "👤 ผู้รับผิดชอบ: $ownerName\n\n"
+             . "🚨 สถานะ: ครบกำหนดวันนี้และยังไม่บันทึกความสำเร็จ!\n"
+             . "📅 กำหนดส่ง: วันนี้ (" . thaiDate($deadline) . ")\n\n"
+             . "💡 ขอความกรุณาเร่งบันทึกข้อมูลและแนบไฟล์หลักฐานลงในระบบ TFS ภายในวันนี้ด้วยนะคะ\n"
+             . "🔗 ลิงก์ระบบ: https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
              
         if (!empty($ph['telegram_chat_id'])) {
             NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
         }
         if (!empty($ph['discord_webhook_url'])) {
-            NotificationService::sendToDiscord(str_replace('*', '**', $msg), $ph['discord_webhook_url']);
+            NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
         }
     } elseif ($today > $deadline) {
         // Overdue
@@ -94,23 +106,34 @@ foreach ($phases as $ph) {
         $ph['days_overdue'] = $daysOverdue;
         $overdue_tasks[] = $ph;
         
-        // Personal notification
-        $msg = "🔴 *[แจ้งเตือนเลยกำหนดส่ง]*\n"
+        // Personal notification (HTML for Telegram)
+        $msg = "🔴 <b>[แจ้งเตือนเลยกำหนดส่ง]</b>\n"
              . "-----------------------------------------------\n"
-             . "📌 *โครงการ:* $projectTitle\n"
-             . "💼 *กิจกรรม:* $activityName\n"
-             . "🔄 *ขั้นตอนย่อย:* ขั้นตอนที่ $phaseNum - $phaseName\n"
-             . "👤 *ผู้รับผิดชอบ:* $ownerName\n\n"
-             . "🚨 *สถานะ:* เกินกำหนดส่งมาแล้ว $daysOverdue วันทำการ!\n"
-             . "📅 *กำหนดส่งเดิม:* " . thaiDate($deadline) . "\n\n"
+             . "📌 <b>โครงการ:</b> $projectTitle\n"
+             . "💼 <b>กิจกรรม:</b> $activityName\n"
+             . "🔄 <b>ขั้นตอนย่อย:</b> ขั้นตอนที่ $phaseNum - $phaseName\n"
+             . "👤 <b>ผู้รับผิดชอบ:</b> $ownerName\n\n"
+             . "🚨 <b>สถานะ:</b> เกินกำหนดส่งมาแล้ว $daysOverdue วันทำการ!\n"
+             . "📅 <b>กำหนดส่งเดิม:</b> " . thaiDate($deadline) . "\n\n"
              . "💡 โปรดเร่งบันทึกข้อมูลและแนบไฟล์หลักฐานลงในระบบ TFS โดยด่วนที่สุดค่ะ\n"
-             . "🔗 *ลิงก์ระบบ:* https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+             . "🔗 <b>ลิงก์ระบบ:</b> https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+             
+        $msgDiscord = "🔴 [แจ้งเตือนเลยกำหนดส่ง]\n"
+             . "-----------------------------------------------\n"
+             . "📌 โครงการ: $projectTitle\n"
+             . "💼 กิจกรรม: $activityName\n"
+             . "🔄 ขั้นตอนย่อย: ขั้นตอนที่ $phaseNum - $phaseName\n"
+             . "👤 ผู้รับผิดชอบ: $ownerName\n\n"
+             . "🚨 สถานะ: เกินกำหนดส่งมาแล้ว $daysOverdue วันทำการ!\n"
+             . "📅 กำหนดส่งเดิม: " . thaiDate($deadline) . "\n\n"
+             . "💡 โปรดเร่งบันทึกข้อมูลและแนบไฟล์หลักฐานลงในระบบ TFS โดยด่วนที่สุดค่ะ\n"
+             . "🔗 ลิงก์ระบบ: https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
              
         if (!empty($ph['telegram_chat_id'])) {
             NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
         }
         if (!empty($ph['discord_webhook_url'])) {
-            NotificationService::sendToDiscord(str_replace('*', '**', $msg), $ph['discord_webhook_url']);
+            NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
         }
     } else {
         // Future deadline
@@ -118,22 +141,33 @@ foreach ($phases as $ph) {
         
         // Advance warning 7 days (Skip for phase 5 - Onepage)
         if ($daysLeft === 7 && $phaseNum != 5) {
-            $msg = "⏳ *[แจ้งเตือนเตรียมงาน - ล่วงหน้า 7 วันทำการ]*\n"
+            $msg = "⏳ <b>[แจ้งเตือนเตรียมงาน - ล่วงหน้า 7 วันทำการ]</b>\n"
                  . "-----------------------------------------------\n"
-                 . "📌 *โครงการ:* $projectTitle\n"
-                 . "💼 *กิจกรรม:* $activityName\n"
-                 . "🔄 *ขั้นตอนย่อย:* ขั้นตอนที่ $phaseNum - $phaseName\n"
-                 . "👤 *ผู้รับผิดชอบ:* $ownerName\n\n"
-                 . "⚠️ *สถานะขณะนี้:* ยังไม่ได้ดำเนินการส่งงานในระบบ\n"
-                 . "📅 *วันครบกำหนดส่ง (Deadline):* " . thaiDate($deadline) . " (เหลือเวลาอีก 7 วันทำการ)\n\n"
+                 . "📌 <b>โครงการ:</b> $projectTitle\n"
+                 . "💼 <b>กิจกรรม:</b> $activityName\n"
+                 . "🔄 <b>ขั้นตอนย่อย:</b> ขั้นตอนที่ $phaseNum - $phaseName\n"
+                 . "👤 <b>ผู้รับผิดชอบ:</b> $ownerName\n\n"
+                 . "⚠️ <b>สถานะขณะนี้:</b> ยังไม่ได้ดำเนินการส่งงานในระบบ\n"
+                 . "📅 <b>วันครบกำหนดส่ง (Deadline):</b> " . thaiDate($deadline) . " (เหลือเวลาอีก 7 วันทำการ)\n\n"
                  . "💡 โปรดเตรียมเอกสาร/หลักฐาน และเข้ามาบันทึกผลการดำเนินงานในระบบ TFS เมื่อดำเนินการเสร็จสิ้นด้วยนะคะ\n"
-                 . "🔗 *ลิงก์ระบบ:* https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+                 . "🔗 <b>ลิงก์ระบบ:</b> https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
+                 
+            $msgDiscord = "⏳ [แจ้งเตือนเตรียมงาน - ล่วงหน้า 7 วันทำการ]\n"
+                 . "-----------------------------------------------\n"
+                 . "📌 โครงการ: $projectTitle\n"
+                 . "💼 กิจกรรม: $activityName\n"
+                 . "🔄 ขั้นตอนย่อย: ขั้นตอนที่ $phaseNum - $phaseName\n"
+                 . "👤 ผู้รับผิดชอบ: $ownerName\n\n"
+                 . "⚠️ สถานะขณะนี้: ยังไม่ได้ดำเนินการส่งงานในระบบ\n"
+                 . "📅 วันครบกำหนดส่ง (Deadline): " . thaiDate($deadline) . " (เหลือเวลาอีก 7 วันทำการ)\n\n"
+                 . "💡 โปรดเตรียมเอกสาร/หลักฐาน และเข้ามาบันทึกผลการดำเนินงานในระบบ TFS เมื่อดำเนินการเสร็จสิ้นด้วยนะคะ\n"
+                 . "🔗 ลิงก์ระบบ: https://mhc11.dmh.go.th/mhc11-tfs/view_activity.php?id=$activityId";
                  
             if (!empty($ph['telegram_chat_id'])) {
                 NotificationService::sendToTelegram($msg, $botToken, $ph['telegram_chat_id']);
             }
             if (!empty($ph['discord_webhook_url'])) {
-                NotificationService::sendToDiscord(str_replace('*', '**', $msg), $ph['discord_webhook_url']);
+                NotificationService::sendToDiscord($msgDiscord, $ph['discord_webhook_url']);
             }
         }
     }
@@ -147,19 +181,27 @@ if (!empty($due_today_tasks)) {
         $listStr .= "• ขั้นตอนที่ {$t['phase_number']} ({$t['phase_name']}) - กิจกรรม: {$t['activity_name']} [ผู้รับผิดชอบ: {$t['owner_name']}]\n";
     }
     
-    $groupMsg = "📢 *[สรุปรายการงานครบกำหนดส่งประจำวันที่ " . thaiDate($today) . "]*\n"
+    $groupMsg = "📢 <b>[สรุปรายการงานครบกำหนดส่งประจำวันที่ " . thaiDate($today) . "]</b>\n"
               . "-----------------------------------------------------------\n"
               . "มีงานที่ครบกำหนดส่งวันนี้ ทั้งหมด $count รายการ ดังนี้:\n\n"
               . $listStr
               . "-----------------------------------------------------------\n"
               . "💡 ฝากหัวหน้างานและผู้รับผิดชอบโครงการช่วยตรวจสอบและเร่งบันทึกความก้าวหน้าในระบบ TFS ด้วยนะคะ\n"
-              . "🔗 *เข้าใช้งานระบบ:* https://mhc11.dmh.go.th/mhc11-tfs/";
+              . "🔗 <b>เข้าใช้งานระบบ:</b> https://mhc11.dmh.go.th/mhc11-tfs/";
+              
+    $groupMsgDiscord = "📢 [สรุปรายการงานครบกำหนดส่งประจำวันที่ " . thaiDate($today) . "]\n"
+              . "-----------------------------------------------------------\n"
+              . "มีงานที่ครบกำหนดส่งวันนี้ ทั้งหมด $count รายการ ดังนี้:\n\n"
+              . $listStr
+              . "-----------------------------------------------------------\n"
+              . "💡 ฝากหัวหน้างานและผู้รับผิดชอบโครงการช่วยตรวจสอบและเร่งบันทึกความก้าวหน้าในระบบ TFS ด้วยนะคะ\n"
+              . "🔗 เข้าใช้งานระบบ: https://mhc11.dmh.go.th/mhc11-tfs/";
               
     if (!empty($telegramGroupId)) {
         NotificationService::sendToTelegram($groupMsg, $botToken, $telegramGroupId);
     }
     if (!empty($discordGroupWebhook)) {
-        NotificationService::sendToDiscord(str_replace('*', '**', $groupMsg), $discordGroupWebhook);
+        NotificationService::sendToDiscord($groupMsgDiscord, $discordGroupWebhook);
     }
 }
 
@@ -171,19 +213,27 @@ if (!empty($overdue_tasks)) {
         $listStr .= "• 🔴 เกินกำหนด {$t['days_overdue']} วัน: ขั้นตอนที่ {$t['phase_number']} ({$t['phase_name']}) - กิจกรรม: {$t['activity_name']} [ผู้รับผิดชอบ: {$t['owner_name']}]\n";
     }
     
-    $groupMsg = "🔴 *[แจ้งเตือนด่วน! รายการงานเกินกำหนดส่ง (Overdue)]*\n"
+    $groupMsg = "🔴 <b>[แจ้งเตือนด่วน! รายการงานเกินกำหนดส่ง (Overdue)]</b>\n"
               . "-----------------------------------------------------------\n"
               . "⚠️ พบงานที่ค้างส่งและเลยกำหนดเวลาในระบบ TFS ทั้งหมด $count รายการ:\n\n"
               . $listStr
               . "-----------------------------------------------------------\n"
               . "🔥 รายการข้างต้นเลยกำหนดส่งงานแล้ว โปรดเร่งรัดดำเนินการและบันทึกข้อมูลในระบบ TFS โดยด่วนที่สุดค่ะ\n"
-              . "🔗 *ตรวจสอบงานค้างทั้งหมดได้ที่:* https://mhc11.dmh.go.th/mhc11-tfs/all_projects.php";
+              . "🔗 <b>ตรวจสอบงานค้างทั้งหมดได้ที่:</b> https://mhc11.dmh.go.th/mhc11-tfs/all_projects.php";
+              
+    $groupMsgDiscord = "🔴 [แจ้งเตือนด่วน! รายการงานเกินกำหนดส่ง (Overdue)]\n"
+              . "-----------------------------------------------------------\n"
+              . "⚠️ พบงานที่ค้างส่งและเลยกำหนดเวลาในระบบ TFS ทั้งหมด $count รายการ:\n\n"
+              . $listStr
+              . "-----------------------------------------------------------\n"
+              . "🔥 รายการข้างต้นเลยกำหนดส่งงานแล้ว โปรดเร่งรัดดำเนินการและบันทึกข้อมูลในระบบ TFS โดยด่วนที่สุดค่ะ\n"
+              . "🔗 ตรวจสอบงานค้างทั้งหมดได้ที่: https://mhc11.dmh.go.th/mhc11-tfs/all_projects.php";
               
     if (!empty($telegramGroupId)) {
         NotificationService::sendToTelegram($groupMsg, $botToken, $telegramGroupId);
     }
     if (!empty($discordGroupWebhook)) {
-        NotificationService::sendToDiscord(str_replace('*', '**', $groupMsg), $discordGroupWebhook);
+        NotificationService::sendToDiscord($groupMsgDiscord, $discordGroupWebhook);
     }
 }
 

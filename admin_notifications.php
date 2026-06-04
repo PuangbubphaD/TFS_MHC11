@@ -136,177 +136,190 @@ try {
             </div>
         </div>
         
-        <!-- Simulated Event Testing Card -->
-        <div class="card fade-in" style="margin-top:2rem; grid-column: span 2;">
-            <div class="card-header">
-                <h3>🧪 ทดลองส่งข้อความจำลองแต่ละเหตุการณ์ (Simulate Notification Events)</h3>
+        <!-- ===== SIMULATION PANEL: 8 Phases × 3 Events ===== -->
+        <div class="card fade-in" style="margin-top:2rem;">
+            <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                <h3>🧪 ทดสอบการแจ้งเตือน — ทุกขั้นตอน × ทุกเหตุการณ์</h3>
+                <div style="display:flex; gap:0.5rem; align-items:center; font-size:0.8rem; color:var(--text-muted)">
+                    <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;">💬 TG = Telegram</span>
+                    <span style="background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:4px;">🎮 DC = Discord</span>
+                    <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;">👤 = ส่วนตัว</span>
+                    <span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;">📢 = กลุ่มกลาง</span>
+                </div>
             </div>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem">
-                คุณสามารถจำลองการส่งข้อความแจ้งเตือนตามเหตุการณ์จริง (เตือนล่วงหน้า 7 วัน / ครบกำหนดวันนี้ / เกินกำหนดส่ง) 
-                เพื่อทดสอบการแสดงผลทางรูปแบบตัวอักษรและการเน้นคำในแต่ละช่องทางได้ที่นี่
+            <p style="font-size:0.83rem; color:var(--text-muted); margin:0 0 1.5rem 0; padding:0 1.5rem;">
+                กดปุ่มเพื่อจำลองส่งข้อความแต่ละเหตุการณ์ของแต่ละขั้นตอน ระบบจะส่งไปยัง Telegram / Discord ตาม Token และ Chat ID / Webhook ที่กรอกไว้ด้านบน
             </p>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:1.5rem">
-                <!-- Telegram Test Panel -->
-                <div style="background:#f8fafc; padding:1.25rem; border-radius:8px; border:1px solid var(--border)">
-                    <h4 style="color:var(--primary); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem">
-                        <span>💬</span> Telegram Event Simulation
-                    </h4>
-                    <div class="form-group">
-                        <label>เลือกเหตุการณ์ที่จะส่ง</label>
-                        <select id="sim_tg_event" class="form-control">
-                            <option value="reminder">⏳ เตือนล่วงหน้า 7 วันทำการ</option>
-                            <option value="due_today">⚠️ ครบกำหนดส่งวันนี้</option>
-                            <option value="overdue">🔴 เลยกำหนดส่ง (Overdue)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:0.5rem; margin-top:1.2rem">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="simulateNotification('telegram', 'personal')">ส่งหาแชทส่วนตัวแอดมิน</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="simulateNotification('telegram', 'group')">ส่งเข้าแชทกลุ่มหลัก</button>
-                    </div>
-                </div>
 
-                <!-- Discord Test Panel -->
-                <div style="background:#f8fafc; padding:1.25rem; border-radius:8px; border:1px solid var(--border)">
-                    <h4 style="color:var(--primary); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem">
-                        <span>💬</span> Discord Event Simulation
-                    </h4>
-                    <div class="form-group">
-                        <label>เลือกเหตุการณ์ที่จะส่ง</label>
-                        <select id="sim_dc_event" class="form-control">
-                            <option value="reminder">⏳ เตือนล่วงหน้า 7 วันทำการ</option>
-                            <option value="due_today">⚠️ ครบกำหนดส่งวันนี้</option>
-                            <option value="overdue">🔴 เลยกำหนดส่ง (Overdue)</option>
-                        </select>
-                    </div>
-                    <div style="display:flex; gap:0.5rem; margin-top:1.2rem">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="simulateNotification('discord', 'personal')">ส่งหาแชทส่วนตัวแอดมิน</button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="simulateNotification('discord', 'group')">ส่งเข้าแชทกลุ่มหลัก</button>
-                    </div>
-                </div>
+            <!-- Channel selector -->
+            <div style="padding:0 1.5rem 1rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                <strong style="font-size:0.875rem;">ส่งไปยัง:</strong>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.875rem;">
+                    <input type="radio" name="sim_target" value="personal" id="sim_target_personal" checked>
+                    <span>👤 แชทส่วนตัว (Admin)</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.875rem;">
+                    <input type="radio" name="sim_target" value="group" id="sim_target_group">
+                    <span>📢 กลุ่มกลาง</span>
+                </label>
             </div>
+
+            <div style="overflow-x:auto; padding:0 1.5rem 1.5rem;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.825rem; min-width:700px;">
+                <thead>
+                    <tr style="background:var(--primary); color:#fff;">
+                        <th style="padding:10px 14px; text-align:left; border-radius:6px 0 0 0; width:40%">ขั้นตอน</th>
+                        <th style="padding:10px 8px; text-align:center;">⏳ ล่วงหน้า 7 วัน</th>
+                        <th style="padding:10px 8px; text-align:center;">⚠️ ครบกำหนดวันนี้</th>
+                        <th style="padding:10px 8px; text-align:center; border-radius:0 6px 0 0">🔴 เลยกำหนด</th>
+                    </tr>
+                </thead>
+                <tbody id="phaseTestTableBody">
+                <?php
+                $phases = [
+                    1 => 'ขออนุมัติจัดกิจกรรม',
+                    2 => 'รายงานค่าใช้จ่าย',
+                    3 => 'รายงานผลการดำเนินงาน',
+                    4 => 'แนบไฟล์หลักฐาน',
+                    5 => 'จัดทำ One-page',
+                    6 => 'ส่งข้อมูลเข้าระบบกรม',
+                    7 => 'ติดตามผลการประเมิน',
+                    8 => 'สรุปและปิดโครงการ',
+                ];
+                $events = [
+                    'reminder'  => ['icon' => '⏳', 'label' => 'ล่วงหน้า'],
+                    'due_today' => ['icon' => '⚠️', 'label' => 'วันนี้'],
+                    'overdue'   => ['icon' => '🔴', 'label' => 'เลยกำหนด'],
+                ];
+                foreach ($phases as $num => $name):
+                    $rowBg = ($num % 2 === 0) ? '#f8fafc' : '#fff';
+                ?>
+                <tr style="background:<?= $rowBg ?>; border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:10px 14px; font-weight:600;">
+                        <span style="display:inline-block;background:var(--primary);color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:0.75rem;margin-right:6px;"><?= $num ?></span>
+                        <?= htmlspecialchars($name) ?>
+                        <?php if ($num == 5): ?>
+                            <span style="font-size:0.7rem;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:4px;margin-left:4px;">ไม่มีเตือนล่วงหน้า</span>
+                        <?php endif; ?>
+                    </td>
+                    <?php foreach ($events as $evKey => $evInfo): ?>
+                    <td style="padding:8px; text-align:center;">
+                        <?php if ($evKey === 'reminder' && $num == 5): ?>
+                            <span style="color:#cbd5e1;font-size:0.75rem;">—</span>
+                        <?php else: ?>
+                        <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                            <button type="button"
+                                onclick="simPhase('telegram', <?= $num ?>, '<?= $evKey ?>', this)"
+                                style="background:#dbeafe;color:#1e40af;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:0.75rem;transition:opacity .15s;"
+                                title="ทดสอบผ่าน Telegram">
+                                💬 TG
+                            </button>
+                            <button type="button"
+                                onclick="simPhase('discord', <?= $num ?>, '<?= $evKey ?>', this)"
+                                style="background:#ede9fe;color:#6d28d9;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:0.75rem;transition:opacity .15s;"
+                                title="ทดสอบผ่าน Discord">
+                                🎮 DC
+                            </button>
+                        </div>
+                        <?php endif; ?>
+                    </td>
+                    <?php endforeach; ?>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+            </div>
+
+            <!-- Status bar -->
+            <div id="simStatusBar" style="display:none; margin:0 1.5rem 1.5rem; padding:12px 16px; border-radius:6px; font-size:0.875rem; font-weight:500;"></div>
         </div>
     </div>
 </div>
 
 <script>
-function testNotification(platform) {
-    const csrfToken = "<?= $_SESSION['csrf_token'] ?? '' ?>";
+const CSRF_TOKEN = "<?= $_SESSION['csrf_token'] ?? '' ?>";
+const MY_TG_CHAT  = "<?= htmlspecialchars($my_telegram_chat_id) ?>";
+const MY_DC_WH    = "<?= htmlspecialchars($my_discord_webhook_url) ?>";
+
+function showSimStatus(success, msg) {
+    const bar = document.getElementById('simStatusBar');
+    bar.style.display = 'block';
+    bar.style.background = success ? '#dcfce7' : '#fee2e2';
+    bar.style.color       = success ? '#166534' : '#991b1b';
+    bar.textContent = (success ? '✅ ' : '❌ ') + msg;
+    setTimeout(() => { bar.style.display = 'none'; }, 5000);
+}
+
+function simPhase(platform, phaseNum, eventKey, btn) {
+    const target = document.querySelector('input[name="sim_target"]:checked').value;
     const data = new FormData();
-    data.append('csrf_token', csrfToken);
+    data.append('csrf_token', CSRF_TOKEN);
+    data.append('type', platform);
+    data.append('target', target);
+    data.append('event', eventKey);
+    data.append('phase', phaseNum);
+
+    if (platform === 'telegram') {
+        const botToken = document.getElementById('telegram_bot_token').value.trim();
+        if (!botToken) { showSimStatus(false, 'กรุณากรอก Telegram Bot Token ก่อนทดสอบ'); return; }
+        data.append('telegram_bot_token', botToken);
+
+        if (target === 'group') {
+            const gid = document.getElementById('telegram_group_chat_id').value.trim();
+            if (!gid) { showSimStatus(false, 'กรุณากรอก Telegram Group Chat ID ก่อนทดสอบ'); return; }
+            data.append('telegram_chat_id', gid);
+        } else {
+            if (!MY_TG_CHAT) { showSimStatus(false, 'กรุณาตั้งค่า Telegram Chat ID ส่วนตัวในหน้าข้อมูลส่วนตัวก่อน'); return; }
+            data.append('telegram_chat_id', MY_TG_CHAT);
+        }
+    } else {
+        if (target === 'group') {
+            const wh = document.getElementById('discord_group_webhook').value.trim();
+            if (!wh) { showSimStatus(false, 'กรุณากรอก Discord Webhook URL ก่อนทดสอบ'); return; }
+            data.append('discord_webhook_url', wh);
+        } else {
+            if (!MY_DC_WH) { showSimStatus(false, 'กรุณาตั้งค่า Discord Webhook ส่วนตัวในหน้าข้อมูลส่วนตัวก่อน'); return; }
+            data.append('discord_webhook_url', MY_DC_WH);
+        }
+    }
+
+    const orig = btn.textContent;
+    btn.textContent = '⏳';
+    btn.disabled = true;
+
+    fetch('test_notification.php', { method: 'POST', body: data })
+        .then(r => r.json())
+        .then(res => showSimStatus(res.success, res.message))
+        .catch(() => showSimStatus(false, 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์'))
+        .finally(() => { btn.textContent = orig; btn.disabled = false; });
+}
+
+// Keep original simple test function for the top buttons
+function testNotification(platform) {
+    const data = new FormData();
+    data.append('csrf_token', CSRF_TOKEN);
     data.append('type', platform);
     data.append('target', 'group');
     
     if (platform === 'telegram') {
         data.append('telegram_bot_token', document.getElementById('telegram_bot_token').value);
         data.append('telegram_chat_id', document.getElementById('telegram_group_chat_id').value);
-    } else if (platform === 'discord') {
+    } else {
         data.append('discord_webhook_url', document.getElementById('discord_group_webhook').value);
     }
     
-    const originalBtnText = event.target.innerText;
     const btn = event.target;
-    btn.innerText = "⏳ กำลังทดสอบ...";
+    const orig = btn.innerText;
+    btn.innerText = '⏳ กำลังทดสอบ...';
     btn.disabled = true;
-    
-    fetch('test_notification.php', {
-        method: 'POST',
-        body: data
-    })
-    .then(response => response.json())
-    .then(result => {
-        alert(result.message);
-    })
-    .catch(error => {
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
-        console.error(error);
-    })
-    .finally(() => {
-        btn.innerText = originalBtnText;
-        btn.disabled = false;
-    });
-}
 
-function simulateNotification(platform, target) {
-    const csrfToken = "<?= $_SESSION['csrf_token'] ?? '' ?>";
-    const data = new FormData();
-    data.append('csrf_token', csrfToken);
-    data.append('type', platform);
-    data.append('target', target);
-    
-    let eventName = '';
-    if (platform === 'telegram') {
-        eventName = document.getElementById('sim_tg_event').value;
-    } else {
-        eventName = document.getElementById('sim_dc_event').value;
-    }
-    data.append('event', eventName);
-    
-    // Check credentials depending on target
-    if (platform === 'telegram') {
-        const botToken = document.getElementById('telegram_bot_token').value;
-        if (!botToken) {
-            alert('กรุณากรอก Telegram Bot Token ก่อนทดสอบจำลองเหตุการณ์');
-            return;
-        }
-        data.append('telegram_bot_token', botToken);
-        
-        if (target === 'group') {
-            const groupChatId = document.getElementById('telegram_group_chat_id').value;
-            if (!groupChatId) {
-                alert('กรุณากรอก Telegram Group Chat ID ก่อนทดสอบส่งเข้ากลุ่ม');
-                return;
-            }
-            data.append('telegram_chat_id', groupChatId);
-        } else {
-            // personal
-            const myChatId = "<?= htmlspecialchars($my_telegram_chat_id) ?>";
-            if (!myChatId) {
-                alert('กรุณาตั้งค่า Telegram Chat ID ส่วนตัวของคุณในหน้า "ข้อมูลส่วนตัว" ก่อนเพื่อรับข้อความทดสอบส่วนบุคคล');
-                return;
-            }
-            data.append('telegram_chat_id', myChatId);
-        }
-    } else if (platform === 'discord') {
-        if (target === 'group') {
-            const groupWebhook = document.getElementById('discord_group_webhook').value;
-            if (!groupWebhook) {
-                alert('กรุณากรอก Discord Group Webhook URL ก่อนทดสอบส่งเข้ากลุ่ม');
-                return;
-            }
-            data.append('discord_webhook_url', groupWebhook);
-        } else {
-            // personal
-            const myWebhook = "<?= htmlspecialchars($my_discord_webhook_url) ?>";
-            if (!myWebhook) {
-                alert('กรุณาตั้งค่า Discord Webhook ส่วนตัวของคุณในหน้า "ข้อมูลส่วนตัว" ก่อนเพื่อรับข้อความทดสอบส่วนบุคคล');
-                return;
-            }
-            data.append('discord_webhook_url', myWebhook);
-        }
-    }
-    
-    const originalBtnText = event.target.innerText;
-    const btn = event.target;
-    btn.innerText = "⏳ กำลังส่งจำลอง...";
-    btn.disabled = true;
-    
-    fetch('test_notification.php', {
-        method: 'POST',
-        body: data
-    })
-    .then(response => response.json())
-    .then(result => {
-        alert(result.message);
-    })
-    .catch(error => {
-        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
-        console.error(error);
-    })
-    .finally(() => {
-        btn.innerText = originalBtnText;
-        btn.disabled = false;
-    });
+    fetch('test_notification.php', { method: 'POST', body: data })
+        .then(r => r.json())
+        .then(res => alert(res.message))
+        .catch(() => alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์'))
+        .finally(() => { btn.innerText = orig; btn.disabled = false; });
 }
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+
