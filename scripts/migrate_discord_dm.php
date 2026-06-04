@@ -2,13 +2,22 @@
 require_once __DIR__ . '/../includes/db.php';
 
 try {
-    // Check if discord_user_id exists
-    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'discord_user_id'");
-    if ($stmt->rowCount() == 0) {
-        $pdo->exec("ALTER TABLE users ADD COLUMN discord_user_id VARCHAR(50) DEFAULT NULL AFTER discord_webhook_url");
-        echo "Added discord_user_id to users table.\n";
-    } else {
-        echo "discord_user_id already exists in users table.\n";
+    // Check and add columns safely
+    $columnsToAdd = [
+        'telegram_chat_id' => "VARCHAR(50) DEFAULT NULL",
+        'discord_webhook_url' => "VARCHAR(255) DEFAULT NULL",
+        'discord_user_id' => "VARCHAR(50) DEFAULT NULL",
+        'line_notify_token' => "VARCHAR(100) DEFAULT NULL"
+    ];
+
+    foreach ($columnsToAdd as $col => $def) {
+        $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE '$col'");
+        if ($stmt->rowCount() == 0) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN $col $def");
+            echo "Added $col to users table.\n";
+        } else {
+            echo "$col already exists in users table.\n";
+        }
     }
 
     // Check if discord_bot_token setting exists
