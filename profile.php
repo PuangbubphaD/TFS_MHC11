@@ -14,6 +14,15 @@ if (!$u) {
     exit;
 }
 
+// Fetch bot token from settings to allow testing
+$bot_token = '';
+try {
+    $st = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'telegram_bot_token'");
+    $bot_token = $st->fetchColumn() ?: '';
+} catch (Exception $e) {
+    // ignore
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrfOrDie();
     $action_type = $_POST['action_type'] ?? '';
@@ -121,12 +130,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; font-size: 1rem; font-weight: 700;">🔔 ตั้งค่าการแจ้งเตือนส่วนบุคคล</h4>
                 <div class="form-group">
                     <label>Telegram Chat ID</label>
-                    <input type="text" name="telegram_chat_id" class="form-control" value="<?= htmlspecialchars($u['telegram_chat_id'] ?? '') ?>" placeholder="ตัวเลข Chat ID (เช่น 123456789)">
+                    <div style="display:flex; gap:0.5rem">
+                        <input type="text" id="telegram_chat_id" name="telegram_chat_id" class="form-control" value="<?= htmlspecialchars($u['telegram_chat_id'] ?? '') ?>" placeholder="ตัวเลข Chat ID (เช่น 123456789)">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="testPersonalNotification('telegram')">🧪 ทดสอบ</button>
+                    </div>
                     <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">ทักแชทบอทของระบบเพื่อรับ Chat ID แล้วนำมาป้อนที่นี่เพื่อรับแจ้งเตือนส่วนตัว</small>
                 </div>
                 <div class="form-group">
                     <label>Discord Webhook URL</label>
-                    <input type="text" name="discord_webhook_url" class="form-control" value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
+                    <div style="display:flex; gap:0.5rem">
+                        <input type="text" id="discord_webhook_url" name="discord_webhook_url" class="form-control" value="<?= htmlspecialchars($u['discord_webhook_url'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="testPersonalNotification('discord')">🧪 ทดสอบ</button>
+                    </div>
                     <small style="color: var(--text-muted); display: block; margin-top: 0.25rem; font-size: 0.75rem;">สร้าง Webhook ใน Discord Channel ส่วนตัวเพื่อรับข้อมูลแจ้งเตือนตรง</small>
                 </div>
                 <div class="form-group">
@@ -165,5 +180,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+function testPersonalNotification(platform) {
+    const csrfToken = "<?= $_SESSION['csrf_token'] ?? '' ?>";
+    const data = new FormData();
+    data.append('csrf_token', csrfToken);
+    data.append('type', platform);
+    data.append('target', 'personal');
+    
+    if (platform === 'telegram') {
+        const botToken = "<?= htmlspecialchars($bot_token) ?>";
+        const chatId = document.getElementById('telegram_chat_id').value;
+        if (!botToken) {
+            alert('ไม่พบการตั้งค่า Telegram Bot Token ในระบบส่วนกลาง (กรุณาแจ้งผู้ดูแลระบบให้ตั้งค่าก่อนทดสอบ)');
+            return;
+        }
+        data.append('telegram_bot_token', botToken);
+        data.append('telegram_chat_id', chatId);
+    } else if (platform === 'discord') {
+        data.append('discord_webhook_url', document.getElementById('discord_webhook_url').value);
+    }
+    
+    const originalBtnText = event.target.innerText;
+    const btn = event.target;
+    btn.innerText = "⏳...";
+    btn.disabled = true;
+    
+    fetch('test_notification.php', {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        alert(result.message);
+    })
+    .catch(error => {
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        console.error(error);
+    })
+    .finally(() => {
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+    });
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

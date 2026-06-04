@@ -77,25 +77,29 @@ try {
                 <h4 style="color:var(--primary);margin-bottom:0.75rem">Telegram Bot & Group</h4>
                 <div class="form-group">
                     <label>Telegram Bot Token</label>
-                    <input type="text" name="telegram_bot_token" class="form-control" 
+                    <input type="text" id="telegram_bot_token" name="telegram_bot_token" class="form-control" 
                            value="<?= htmlspecialchars($settings['telegram_bot_token'] ?? '') ?>" placeholder="ตัวอย่าง: 123456:ABC-DEF...">
                 </div>
                 <div class="form-group">
                     <label>Telegram Group Chat ID</label>
-                    <input type="text" name="telegram_group_chat_id" class="form-control" 
+                    <input type="text" id="telegram_group_chat_id" name="telegram_group_chat_id" class="form-control" 
                            value="<?= htmlspecialchars($settings['telegram_group_chat_id'] ?? '') ?>" placeholder="ตัวอย่าง: -1001234567890">
                 </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="testNotification('telegram')">🧪 ทดสอบเชื่อมต่อ Telegram</button>
 
                 <hr style="border:none;border-top:1px solid var(--border);margin:1.5rem 0">
 
                 <h4 style="color:var(--primary);margin-bottom:0.75rem">Discord Webhook</h4>
                 <div class="form-group">
                     <label>Discord Group Webhook URL</label>
-                    <input type="text" name="discord_group_webhook" class="form-control" 
+                    <input type="text" id="discord_group_webhook" name="discord_group_webhook" class="form-control" 
                            value="<?= htmlspecialchars($settings['discord_group_webhook'] ?? '') ?>" placeholder="https://discord.com/api/webhooks/...">
                 </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="testNotification('discord')">🧪 ทดสอบเชื่อมต่อ Discord</button>
                 
-                <button type="submit" class="btn btn-primary" style="margin-top:1rem">💾 บันทึกการตั้งค่า</button>
+                <div style="margin-top:2rem; display:flex; gap:1rem">
+                    <button type="submit" class="btn btn-primary">💾 บันทึกการตั้งค่า</button>
+                </div>
             </form>
         </div>
         
@@ -117,5 +121,44 @@ try {
         </div>
     </div>
 </div>
+
+<script>
+function testNotification(platform) {
+    const csrfToken = "<?= $_SESSION['csrf_token'] ?? '' ?>";
+    const data = new FormData();
+    data.append('csrf_token', csrfToken);
+    data.append('type', platform);
+    data.append('target', 'group');
+    
+    if (platform === 'telegram') {
+        data.append('telegram_bot_token', document.getElementById('telegram_bot_token').value);
+        data.append('telegram_chat_id', document.getElementById('telegram_group_chat_id').value);
+    } else if (platform === 'discord') {
+        data.append('discord_webhook_url', document.getElementById('discord_group_webhook').value);
+    }
+    
+    const originalBtnText = event.target.innerText;
+    const btn = event.target;
+    btn.innerText = "⏳ กำลังทดสอบ...";
+    btn.disabled = true;
+    
+    fetch('test_notification.php', {
+        method: 'POST',
+        body: data
+    })
+    .then(response => response.json())
+    .then(result => {
+        alert(result.message);
+    })
+    .catch(error => {
+        alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        console.error(error);
+    })
+    .finally(() => {
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+    });
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
