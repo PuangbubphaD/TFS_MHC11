@@ -9,22 +9,52 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 // Handle User Approval
-if (isset($_POST['action']) && $_POST['action'] === 'approve' && isset($_POST['user_id'])) {
+if (isset($_POST['action']) && isset($_POST['user_id'])) {
+    checkCsrfOrDie();
     $uid = (int)$_POST['user_id'];
-    $stmt = $pdo->prepare("UPDATE users SET account_status = 'active' WHERE id = ?");
-    $stmt->execute([$uid]);
-    
-    // Log action
-    $logStmt = $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'approve_user', CONCAT('Approved user ID ', ?), ?)");
-    $logStmt->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
-    
-    header("Location: users.php?msg=approved");
-    exit;
+    $action = $_POST['action'];
+
+    if ($action === 'approve') {
+        $pdo->prepare("UPDATE users SET account_status = 'active' WHERE id = ?")->execute([$uid]);
+        $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'approve_user', CONCAT('Approved user ID ', ?), ?)")
+            ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+        header("Location: users.php?msg=approved"); exit;
+
+    } elseif ($action === 'suspend') {
+        $pdo->prepare("UPDATE users SET account_status = 'suspended' WHERE id = ?")->execute([$uid]);
+        $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'suspend_user', CONCAT('Suspended user ID ', ?), ?)")
+            ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+        header("Location: users.php?msg=suspended"); exit;
+
+    } elseif ($action === 'unsuspend') {
+        $pdo->prepare("UPDATE users SET account_status = 'active' WHERE id = ?")->execute([$uid]);
+        $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'unsuspend_user', CONCAT('Unsuspended user ID ', ?), ?)")
+            ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+        header("Location: users.php?msg=unsuspended"); exit;
+
+    } elseif ($action === 'reject') {
+        $pdo->prepare("DELETE FROM users WHERE id = ? AND account_status = 'pending_approval'")->execute([$uid]);
+        $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'reject_user', CONCAT('Rejected & deleted user ID ', ?), ?)")
+            ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+        header("Location: users.php?msg=rejected"); exit;
+    }
 }
 
 // Fetch all users
-$stmt = $pdo->query("SELECT * FROM users ORDER BY role DESC, full_name ASC");
+$stmt = $pdo->query("SELECT * FROM users ORDER BY account_status ASC, role DESC, full_name ASC");
 $users = $stmt->fetchAll();
+
+// Message
+$msg = '';
+if (isset($_GET['msg'])) {
+    $msgs = [
+        'approved'   => ['type' => 'success', 'text' => '✅ อนุมัติบัญชีผู้ใช้งานเรียบร้อยแล้ว'],
+        'suspended'  => ['type' => 'warning', 'text' => '🚫 ระงับการใช้งานบัญชีเรียบร้อยแล้ว'],
+        'unsuspended'=> ['type' => 'success', 'text' => '✅ เปิดใช้งานบัญชีเรียบร้อยแล้ว'],
+        'rejected'   => ['type' => 'danger',  'text' => '🗑️ ปฏิเสธและลบบัญชีคำขอสมัครแล้ว'],
+    ];
+    $msg = $msgs[$_GET['msg']] ?? null;
+}
 ?>
 
 <div class="topbar">
@@ -39,6 +69,14 @@ $users = $stmt->fetchAll();
 </div>
 
 <div class="page-content">
+    <?php if ($msg): ?>
+    <div class="alert alert-<?= $msg['type'] ?>" style="margin-bottom:1rem;padding:1rem;border-radius:8px;
+        <?= $msg['type']==='success' ? 'background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;' : '' ?>
+        <?= $msg['type']==='warning' ? 'background:#fef3c7;color:#92400e;border:1px solid #fde68a;' : '' ?>
+        <?= $msg['type']==='danger'  ? 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;' : '' ?>">
+        <?= $msg['text'] ?>
+    </div>
+    <?php endif; ?>
     <div class="card fade-in">
         <div class="card-header">
             <h3>รายชื่อสมาชิกทั้งหมด (<?= count($users) ?> คน)</h3>
@@ -92,15 +130,44 @@ $users = $stmt->fetchAll();
                         </td>
                         <td data-label="วันที่เพิ่ม" style="font-size:0.85rem;color:var(--text-muted)"><?= thaiDate($u['created_at']) ?></td>
                         <td data-label="จัดการ" style="text-align:center">
-                            <div style="display:flex;gap:0.5rem;justify-content:center">
-                                <?php if (isset($u['account_status']) && $u['account_status'] === 'pending_approval'): ?>
-                                    <form method="POST" style="margin:0" onsubmit="return confirm('ยืนยันการอนุมัติผู้ใช้งานรายนี้?');">
+                            <div style="display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap">
+                                <?php
+                                $status = $u['account_status'] ?? 'active';
+                                $isSelf = ($u['id'] == $_SESSION['user_id']);
+                                ?>
+
+                                <?php if ($status === 'pending_approval'): ?>
+                                    <form method="POST" style="margin:0" onsubmit="return confirm('อนุมัติผู้ใช้รายนี้?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                         <input type="hidden" name="action" value="approve">
                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
-                                        <button type="submit" class="btn btn-primary btn-sm">✅ อนุมัติ</button>
+                                        <button type="submit" class="btn btn-sm" style="background:#059669;color:#fff;font-size:0.78rem">✅ อนุมัติ</button>
+                                    </form>
+                                    <form method="POST" style="margin:0" onsubmit="return confirm('ปฏิเสธและลบคำขอสมัครรายนี้?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                        <input type="hidden" name="action" value="reject">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn btn-sm" style="background:#dc2626;color:#fff;font-size:0.78rem">🗑️ ปฏิเสธ</button>
+                                    </form>
+
+                                <?php elseif ($status === 'active' && !$isSelf): ?>
+                                    <form method="POST" style="margin:0" onsubmit="return confirm('ระงับการใช้งานบัญชีนี้?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                        <input type="hidden" name="action" value="suspend">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn btn-sm" style="background:#d97706;color:#fff;font-size:0.78rem">🚫 ระงับ</button>
+                                    </form>
+
+                                <?php elseif ($status === 'suspended'): ?>
+                                    <form method="POST" style="margin:0" onsubmit="return confirm('เปิดใช้งานบัญชีนี้อีกครั้ง?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                        <input type="hidden" name="action" value="unsuspend">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn btn-sm" style="background:#059669;color:#fff;font-size:0.78rem">✅ เปิดใช้</button>
                                     </form>
                                 <?php endif; ?>
-                                <a href="edit_user.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm">✏️ แก้ไข</a>
+
+                                <a href="edit_user.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm" style="font-size:0.78rem">✏️ แก้ไข</a>
                             </div>
                         </td>
                     </tr>
