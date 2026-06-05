@@ -25,6 +25,21 @@ try {
         echo "Successfully added ThaiD columns to `users` table.\n";
     }
 
+    // Create logs table if not exists
+    $sqlLogs = "
+        CREATE TABLE IF NOT EXISTS `logs` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `user_id` int(11) DEFAULT NULL,
+          `action` varchar(255) NOT NULL,
+          `details` text DEFAULT NULL,
+          `ip_address` varchar(45) DEFAULT NULL,
+          `created_at` timestamp NULL DEFAULT current_timestamp(),
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ";
+    $pdo->exec($sqlLogs);
+    echo "Successfully ensured `logs` table exists.\n";
+
 } catch (PDOException $e) {
     echo "Error during migration: " . $e->getMessage() . "\n";
 }
