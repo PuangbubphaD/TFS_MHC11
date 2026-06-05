@@ -37,6 +37,15 @@ if (isset($_POST['action']) && isset($_POST['user_id'])) {
         $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'reject_user', CONCAT('Rejected & deleted user ID ', ?), ?)")
             ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
         header("Location: users.php?msg=rejected"); exit;
+
+    } elseif ($action === 'delete') {
+        // Cannot delete yourself
+        if ($uid !== (int)$_SESSION['user_id']) {
+            $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$uid]);
+            $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'delete_user', CONCAT('Deleted user ID ', ?), ?)")
+                ->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+        }
+        header("Location: users.php?msg=deleted"); exit;
     }
 }
 
@@ -52,6 +61,7 @@ if (isset($_GET['msg'])) {
         'suspended'  => ['type' => 'warning', 'text' => '🚫 ระงับการใช้งานบัญชีเรียบร้อยแล้ว'],
         'unsuspended'=> ['type' => 'success', 'text' => '✅ เปิดใช้งานบัญชีเรียบร้อยแล้ว'],
         'rejected'   => ['type' => 'danger',  'text' => '🗑️ ปฏิเสธและลบบัญชีคำขอสมัครแล้ว'],
+        'deleted'    => ['type' => 'danger',  'text' => '🗑️ ลบบัญชีผู้ใช้งานออกจากระบบแล้ว'],
     ];
     $msg = $msgs[$_GET['msg']] ?? null;
 }
@@ -168,6 +178,15 @@ if (isset($_GET['msg'])) {
                                 <?php endif; ?>
 
                                 <a href="edit_user.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm" style="font-size:0.78rem">✏️ แก้ไข</a>
+
+                                <?php if (!$isSelf): ?>
+                                <form method="POST" style="margin:0" onsubmit="return confirm('⚠️ ลบบัญชี \"<?= htmlspecialchars($u[\'full_name\'], ENT_QUOTES) ?>\" ออกจากระบบถาวร? ข้อมูลทั้งหมดจะหายไปเลย')">
+                                    <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                    <button type="submit" class="btn btn-sm" style="background:#7f1d1d;color:#fff;font-size:0.78rem">🗑️ ลบ</button>
+                                </form>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
