@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrfOrDie();
     $title       = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $fiscal_year = intval($_POST['fiscal_year'] ?? getCurrentFiscalYear());
     $budget      = floatval($_POST['budget_total'] ?? 0);
     $start_date  = $_POST['start_date'] ?? '';
     $end_date    = $_POST['end_date'] ?? '';
@@ -21,10 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'กรุณากรอกชื่อโครงการ';
     } else {
         $stmt = $pdo->prepare("
-            INSERT INTO projects (user_id, title, description, budget_total, start_date, end_date, status)
-            VALUES (?, ?, ?, ?, ?, ?, 'active')
+            INSERT INTO projects (user_id, title, description, fiscal_year, budget_total, start_date, end_date, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
         ");
-        $stmt->execute([$_SESSION['user_id'], $title, $description, $budget, $start_date ?: null, $end_date ?: null]);
+        $stmt->execute([$_SESSION['user_id'], $title, $description, $fiscal_year, $budget, $start_date ?: null, $end_date ?: null]);
         $project_id = $pdo->lastInsertId();
 
         // Auto-create 2 administrative phases (Approval & Summary)
@@ -90,11 +91,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <textarea name="description" class="form-control" rows="4"
                               placeholder="อธิบายวัตถุประสงค์และรายละเอียดโครงการ"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
                 </div>
-                <div class="form-group">
-                    <label>งบประมาณโครงการ (บาท)</label>
-                    <input type="number" name="budget_total" class="form-control"
-                           placeholder="0.00" step="0.01" min="0"
-                           value="<?= htmlspecialchars($_POST['budget_total'] ?? '') ?>">
+                <div class="form-row form-row-2">
+                    <div class="form-group">
+                        <label>ปีงบประมาณ <span class="required">*</span></label>
+                        <select name="fiscal_year" class="form-control" required>
+                            <?= renderFiscalYearFormOptions(isset($_POST['fiscal_year']) ? $_POST['fiscal_year'] : null) ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>งบประมาณโครงการ (บาท)</label>
+                        <input type="number" name="budget_total" class="form-control"
+                               placeholder="0.00" step="0.01" min="0"
+                               value="<?= htmlspecialchars($_POST['budget_total'] ?? '') ?>">
+                    </div>
                 </div>
                 <div class="form-row form-row-2">
                     <div class="form-group">

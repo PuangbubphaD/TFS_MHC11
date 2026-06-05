@@ -6,10 +6,13 @@ if (!in_array($_SESSION['role'], ['head','director','admin'])) {
     header('Location: index.php'); exit;
 }
 
+
 // Filter params
 $status_filter = $_GET['status'] ?? '';
 $owner_filter  = $_GET['user_id'] ?? '';
 $search        = trim($_GET['q'] ?? '');
+$fy_filter     = $_GET['fy'] ?? '';
+if ($fy_filter === '') $fy_filter = getCurrentFiscalYear();
 
 // Build WHERE
 $where  = ['p.deleted_at IS NULL'];
@@ -17,6 +20,7 @@ $params = [];
 if ($status_filter) { $where[] = 'p.status = ?'; $params[] = $status_filter; }
 if ($owner_filter)  { $where[] = 'p.user_id = ?'; $params[] = $owner_filter; }
 if ($search)        { $where[] = 'p.title LIKE ?'; $params[] = "%$search%"; }
+if ($fy_filter && $fy_filter !== 'all') { $where[] = 'p.fiscal_year = ?'; $params[] = $fy_filter; }
 
 $whereSQL = implode(' AND ', $where);
 
@@ -58,6 +62,12 @@ $owners = $pdo->query("SELECT id, full_name FROM users ORDER BY full_name")->fet
     <!-- Filters -->
     <div class="card fade-in mb-3">
         <form method="GET" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:150px">
+                <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem">ปีงบประมาณ</label>
+                <select name="fy" class="form-control">
+                    <?= renderFiscalYearOptions($fy_filter) ?>
+                </select>
+            </div>
             <div style="flex:2;min-width:200px">
                 <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem">🔍 ค้นหา</label>
                 <input type="text" name="q" class="form-control" placeholder="ชื่อโครงการ..." value="<?= htmlspecialchars($search) ?>">

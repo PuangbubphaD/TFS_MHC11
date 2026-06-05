@@ -400,3 +400,70 @@ function getWorkingDayDeadline(PDO $pdo, string $startDateStr, int $days, string
 
     return $date->format('Y-m-d');
 }
+
+/**
+ * Calculate the Thai Fiscal Year from a given date string (Y-m-d)
+ * Thai Fiscal Year starts on October 1st and ends on September 30th.
+ * E.g., Oct 1, 2023 (2566) is in Fiscal Year 2024 (2567).
+ */
+function calculateFiscalYear(?string $date_string): int {
+    if (!$date_string) {
+        $date_string = date('Y-m-d');
+    }
+    
+    $timestamp = strtotime($date_string);
+    $year = (int)date('Y', $timestamp) + 543; // Convert to Buddhist Era
+    $month = (int)date('m', $timestamp);
+    
+    // If month is October (10) or later, it belongs to the NEXT fiscal year
+    if ($month >= 10) {
+        $year += 1;
+    }
+    
+    return $year;
+}
+
+/**
+ * Get the current Thai Fiscal Year
+ */
+function getCurrentFiscalYear(): int {
+    return calculateFiscalYear(date('Y-m-d'));
+}
+
+/**
+ * Render fiscal year dropdown options (2566 - 2575)
+ * Default selected = current fiscal year unless overridden
+ */
+function renderFiscalYearOptions($selected = null): string {
+    $currentFy = getCurrentFiscalYear();
+    if ($selected === null || $selected === '') {
+        $selected = $currentFy;
+    }
+    $selected = intval($selected);
+
+    $html = '<option value="all"' . ($selected === 0 ? ' selected' : '') . '>ทั้งหมด</option>';
+    for ($y = 2575; $y >= 2566; $y--) {
+        $sel = ($y === $selected) ? ' selected' : '';
+        $html .= "<option value=\"$y\"$sel>ปี $y</option>";
+    }
+    return $html;
+}
+
+/**
+ * Render fiscal year dropdown options for forms (add/edit project)
+ * No "all" option, default = current fiscal year
+ */
+function renderFiscalYearFormOptions($selected = null): string {
+    $currentFy = getCurrentFiscalYear();
+    if ($selected === null || $selected === '' || $selected === 0) {
+        $selected = $currentFy;
+    }
+    $selected = intval($selected);
+
+    $html = '';
+    for ($y = 2575; $y >= 2566; $y--) {
+        $sel = ($y === $selected) ? ' selected' : '';
+        $html .= "<option value=\"$y\"$sel>$y</option>";
+    }
+    return $html;
+}

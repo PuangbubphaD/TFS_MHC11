@@ -133,7 +133,7 @@ $statusTH = ['pending'=>'รอดำเนินการ','in_progress'=>'ก�
 
     <div class="project-title-box">
         <h2><?= htmlspecialchars($project['title']) ?></h2>
-        <p style="font-size:0.85rem">ผู้รับผิดชอบ: <?= htmlspecialchars($project['owner']) ?> (<?= htmlspecialchars($project['department'] ?? '-') ?>)</p>
+        <p style="font-size:0.85rem">ปีงบประมาณ: <?= $project['fiscal_year'] ? '25'.substr($project['fiscal_year'], -2) : '-' ?> | ผู้รับผิดชอบ: <?= htmlspecialchars($project['owner']) ?> (<?= htmlspecialchars($project['department'] ?? '-') ?>)</p>
     </div>
 
     <div class="section">

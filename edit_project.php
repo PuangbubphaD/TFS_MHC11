@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title       = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $fiscal_year = intval($_POST['fiscal_year'] ?? $project['fiscal_year']);
     $budget      = floatval($_POST['budget_total'] ?? 0);
     $start_date  = $_POST['start_date'] ?? '';
     $end_date    = $_POST['end_date'] ?? '';
@@ -39,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $old_start = $project['start_date'];
         
-        $pdo->prepare("UPDATE projects SET title=?,description=?,budget_total=?,start_date=?,end_date=?,status=? WHERE id=?")
-            ->execute([$title, $description, $budget, $start_date ?: null, $end_date ?: null, $status, $project_id]);
+        $pdo->prepare("UPDATE projects SET title=?,description=?,fiscal_year=?,budget_total=?,start_date=?,end_date=?,status=? WHERE id=?")
+            ->execute([$title, $description, $fiscal_year, $budget, $start_date ?: null, $end_date ?: null, $status, $project_id]);
 
         // If start_date was updated and is now set, recalculate all phase deadlines
         if (!empty($start_date) && $start_date !== $old_start) {
@@ -105,10 +106,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>รายละเอียดโครงการ</label>
                     <textarea name="description" class="form-control" rows="4"><?= htmlspecialchars($_POST['description'] ?? $project['description'] ?? '') ?></textarea>
                 </div>
-                <div class="form-group">
-                    <label>งบประมาณโครงการ (บาท)</label>
-                    <input type="number" name="budget_total" class="form-control" step="0.01" min="0"
-                           value="<?= htmlspecialchars($_POST['budget_total'] ?? $project['budget_total']) ?>">
+                <div class="form-row form-row-2">
+                    <div class="form-group">
+                        <label>ปีงบประมาณ <span class="required">*</span></label>
+                        <select name="fiscal_year" class="form-control" required>
+                            <?= renderFiscalYearFormOptions(isset($_POST['fiscal_year']) ? $_POST['fiscal_year'] : $project['fiscal_year']) ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>งบประมาณโครงการ (บาท)</label>
+                        <input type="number" name="budget_total" class="form-control" step="0.01" min="0"
+                               value="<?= htmlspecialchars($_POST['budget_total'] ?? $project['budget_total']) ?>">
+                    </div>
                 </div>
                 <div class="form-row form-row-2">
                     <div class="form-group">

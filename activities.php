@@ -9,6 +9,8 @@ $uid  = $_SESSION['user_id'];
 $status_filter   = $_GET['status'] ?? '';
 $project_filter  = $_GET['project_id'] ?? '';
 $search          = trim($_GET['q'] ?? '');
+$fy_filter       = $_GET['fy'] ?? '';
+if ($fy_filter === '') $fy_filter = getCurrentFiscalYear();
 
 // Build WHERE
 $where  = ['a.deleted_at IS NULL', 'p.deleted_at IS NULL'];
@@ -17,6 +19,7 @@ $params = [];
 if ($role === 'staff') {
     $where[] = 'p.user_id = ?'; $params[] = $uid;
 }
+if ($fy_filter && $fy_filter !== 'all') { $where[] = 'p.fiscal_year = ?'; $params[] = $fy_filter; }
 if ($status_filter)  { $where[] = 'a.status = ?';      $params[] = $status_filter; }
 if ($project_filter) { $where[] = 'a.project_id = ?';  $params[] = $project_filter; }
 if ($search)         { $where[] = 'a.activity_name LIKE ?'; $params[] = "%$search%"; }
@@ -105,6 +108,12 @@ $totalSpent = array_sum(array_column($activities, 'spent'));
     <!-- Filters -->
     <div class="card fade-in mb-3">
         <form method="GET" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:130px">
+                <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem">ปีงบประมาณ</label>
+                <select name="fy" class="form-control">
+                    <?= renderFiscalYearOptions($fy_filter) ?>
+                </select>
+            </div>
             <div style="flex:2;min-width:180px">
                 <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:0.3rem">🔍 ค้นหา</label>
                 <input type="text" name="q" class="form-control" placeholder="ชื่อกิจกรรม..." value="<?= htmlspecialchars($search) ?>">

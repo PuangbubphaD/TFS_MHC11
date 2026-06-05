@@ -8,17 +8,26 @@ if (!in_array($_SESSION['role'], ['head','director','admin'])) {
 
 // =================== DATA QUERIES ===================
 
+// Fiscal Year Filter
+$fy_filter = $_GET['fy'] ?? '';
+if ($fy_filter === '') $fy_filter = getCurrentFiscalYear();
+
+$fy_where = ($fy_filter && $fy_filter !== 'all') ? "AND fiscal_year = " . intval($fy_filter) : "";
+$prj_fy_where = ($fy_filter && $fy_filter !== 'all') ? "AND p.fiscal_year = " . intval($fy_filter) : "";
+$prj2_fy_where = ($fy_filter && $fy_filter !== 'all') ? "AND prj2.fiscal_year = " . intval($fy_filter) : "";
+$prj3_fy_where = ($fy_filter && $fy_filter !== 'all') ? "AND prj3.fiscal_year = " . intval($fy_filter) : "";
+
 // Overall Stats (Fixed to prevent multiplication from joins)
 $totals = $pdo->query("
     SELECT
-        (SELECT COUNT(*) FROM projects WHERE deleted_at IS NULL) AS total_projects,
-        (SELECT COUNT(*) FROM projects WHERE status='active' AND deleted_at IS NULL) AS active_projects,
-        (SELECT COUNT(*) FROM projects WHERE status='completed' AND deleted_at IS NULL) AS done_projects,
-        (SELECT COALESCE(SUM(budget_total), 0) FROM projects WHERE deleted_at IS NULL) AS total_budget,
-        (SELECT COUNT(*) FROM activities WHERE deleted_at IS NULL) AS total_activities,
-        (SELECT COALESCE(SUM(ar2.budget_spent), 0) FROM activity_reports ar2 JOIN activities act2 ON ar2.activity_id = act2.id JOIN projects prj2 ON act2.project_id = prj2.id WHERE act2.deleted_at IS NULL AND prj2.deleted_at IS NULL) AS total_spent,
-        (SELECT COALESCE(SUM(planned_participants), 0) FROM activities WHERE deleted_at IS NULL) AS total_planned_participants,
-        (SELECT COALESCE(SUM(ar3.participants), 0) FROM activity_reports ar3 JOIN activities act3 ON ar3.activity_id = act3.id JOIN projects prj3 ON act3.project_id = prj3.id WHERE act3.deleted_at IS NULL AND prj3.deleted_at IS NULL) AS total_actual_participants
+        (SELECT COUNT(*) FROM projects WHERE deleted_at IS NULL $fy_where) AS total_projects,
+        (SELECT COUNT(*) FROM projects WHERE status='active' AND deleted_at IS NULL $fy_where) AS active_projects,
+        (SELECT COUNT(*) FROM projects WHERE status='completed' AND deleted_at IS NULL $fy_where) AS done_projects,
+        (SELECT COALESCE(SUM(budget_total), 0) FROM projects WHERE deleted_at IS NULL $fy_where) AS total_budget,
+        (SELECT COUNT(*) FROM activities a JOIN projects p ON a.project_id = p.id WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL $prj_fy_where) AS total_activities,
+        (SELECT COALESCE(SUM(ar2.budget_spent), 0) FROM activity_reports ar2 JOIN activities act2 ON ar2.activity_id = act2.id JOIN projects prj2 ON act2.project_id = prj2.id WHERE act2.deleted_at IS NULL AND prj2.deleted_at IS NULL $prj2_fy_where) AS total_spent,
+        (SELECT COALESCE(SUM(a.planned_participants), 0) FROM activities a JOIN projects p ON a.project_id = p.id WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL $prj_fy_where) AS total_planned_participants,
+        (SELECT COALESCE(SUM(ar3.participants), 0) FROM activity_reports ar3 JOIN activities act3 ON ar3.activity_id = act3.id JOIN projects prj3 ON act3.project_id = prj3.id WHERE act3.deleted_at IS NULL AND prj3.deleted_at IS NULL $prj3_fy_where) AS total_actual_participants
 ")->fetch();
 
 // 1. Top 5 Overdue/Urgent Phases
@@ -32,6 +41,7 @@ $overdueUrgentPhases = $pdo->query("
     WHERE (ap.status = 'overdue' OR (ap.deadline_date < CURDATE() AND ap.status != 'completed'))
       AND a.deleted_at IS NULL 
       AND p.deleted_at IS NULL
+      $prj_fy_where
     ORDER BY ap.deadline_date ASC
     LIMIT 5
 ")->fetchAll();
@@ -43,7 +53,7 @@ $ongoingUpcomingActivities = $pdo->query("
     FROM activities a
     JOIN projects p ON a.project_id = p.id
     JOIN users u ON p.user_id = u.id
-    WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
+    WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL $prj_fy_where
       AND (a.status = 'ongoing' OR (a.planned_start BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)))
     ORDER BY a.planned_start ASC
     LIMIT 5
@@ -55,7 +65,7 @@ $remainingBudgetRanking = $pdo->query("
            (SELECT COALESCE(SUM(ar.budget_spent), 0) FROM activity_reports ar JOIN activities act ON ar.activity_id = act.id WHERE act.project_id = p.id AND act.deleted_at IS NULL) AS spent
     FROM projects p
     JOIN users u ON p.user_id = u.id
-    WHERE p.deleted_at IS NULL
+    WHERE p.deleted_at IS NULL $prj_fy_where
     ORDER BY (p.budget_total - (SELECT COALESCE(SUM(ar.budget_spent), 0) FROM activity_reports ar JOIN activities act ON ar.activity_id = act.id WHERE act.project_id = p.id AND act.deleted_at IS NULL)) DESC
     LIMIT 5
 ")->fetchAll();
@@ -68,7 +78,7 @@ $budgetByProject = $pdo->query("
     FROM projects p
     LEFT JOIN activities a ON (a.project_id=p.id AND a.deleted_at IS NULL)
     LEFT JOIN activity_reports ar ON ar.activity_id=a.id
-    WHERE p.deleted_at IS NULL
+    WHERE p.deleted_at IS NULL $prj_fy_where
     GROUP BY p.id
     ORDER BY p.budget_total DESC
     LIMIT 10
@@ -77,7 +87,7 @@ $budgetByProject = $pdo->query("
 // Phase status distribution (Combined from Project and Activity levels)
 $phaseStats = $pdo->query("
     SELECT status_key, COUNT(*) AS cnt FROM (
-        SELECT ph.status AS status_key FROM project_phases ph JOIN projects p ON ph.project_id = p.id WHERE p.deleted_at IS NULL
+        SELECT ph.status AS status_key FROM project_phases ph JOIN projects p ON ph.project_id = p.id WHERE p.deleted_at IS NULL $prj_fy_where
         UNION ALL
         SELECT CASE
             WHEN ap.status = 'completed' AND ap.completed_date > ap.deadline_date THEN 'completed_late'
@@ -88,7 +98,7 @@ $phaseStats = $pdo->query("
         FROM activity_phases ap
         JOIN activities a ON ap.activity_id = a.id
         JOIN projects p ON a.project_id = p.id
-        WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
+        WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL $prj_fy_where
     ) AS all_phases
     GROUP BY status_key
 ")->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -101,7 +111,7 @@ $recentReports = $pdo->query("
     JOIN activities a ON ar.activity_id = a.id
     JOIN projects p ON a.project_id = p.id
     LEFT JOIN users u ON ar.reported_by = u.id
-    WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL
+    WHERE a.deleted_at IS NULL AND p.deleted_at IS NULL $prj_fy_where
     ORDER BY ar.report_date DESC
     LIMIT 50
 ")->fetchAll();
@@ -120,7 +130,7 @@ $allProjects = $pdo->query("
             FROM activities a WHERE a.project_id = p.id AND a.deleted_at IS NULL) AS activity_progress
     FROM projects p
     JOIN users u ON p.user_id = u.id
-    WHERE p.deleted_at IS NULL
+    WHERE p.deleted_at IS NULL $prj_fy_where
     ORDER BY p.created_at DESC
 ")->fetchAll();
 
@@ -181,7 +191,15 @@ foreach ($monthlySpend as &$spend) {
         <div class="topbar-breadcrumb">Real-time | ข้อมูล ณ: <?= thaiDateTime(date('Y-m-d H:i:s')) ?></div>
     </div>
     </div>
-    <a href="index.php" class="btn btn-outline">🏠 โครงการของฉัน</a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">ปีงบประมาณ:</label>
+            <select name="fy" class="form-control" style="width: auto; padding-right: 2rem;" onchange="this.form.submit()">
+                <?= renderFiscalYearOptions($fy_filter) ?>
+            </select>
+        </form>
+        <a href="index.php" class="btn btn-outline">🏠 โครงการของฉัน</a>
+    </div>
 </div>
 
 <div class="page-content">

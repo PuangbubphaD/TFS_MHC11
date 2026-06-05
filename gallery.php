@@ -4,6 +4,8 @@ require_once __DIR__ . '/includes/header.php';
 // Filter by project and activity
 $project_id  = intval($_GET['project_id'] ?? 0);
 $activity_id = intval($_GET['activity_id'] ?? 0);
+$fy_filter   = $_GET['fy'] ?? '';
+if ($fy_filter === '') $fy_filter = getCurrentFiscalYear();
 
 // Base query
 $sql = "
@@ -18,6 +20,7 @@ $sql = "
     WHERE (a.file_name LIKE '%.jpg' OR a.file_name LIKE '%.jpeg' OR a.file_name LIKE '%.png' OR a.file_name LIKE '%.webp' OR a.file_name LIKE '%.gif')
 ";
 
+if ($fy_filter && $fy_filter !== 'all') $sql .= " AND p.fiscal_year = " . intval($fy_filter);
 if ($project_id)  $sql .= " AND p.id = $project_id";
 if ($activity_id) $sql .= " AND act.id = $activity_id";
 
@@ -46,6 +49,9 @@ if ($project_id) {
     </div>
     <div class="topbar-actions">
         <form method="GET" style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <select name="fy" class="form-control" style="width:150px" onchange="this.form.submit()">
+                <?= renderFiscalYearOptions($fy_filter) ?>
+            </select>
             <select name="project_id" class="form-control" style="width:220px" onchange="this.form.activity_id.value=0;this.form.submit()">
                 <option value="0">--- ทุกโครงการ ---</option>
                 <?php foreach ($projects as $pj): ?>

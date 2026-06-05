@@ -9,37 +9,40 @@ if ($role === 'director') {
     exit;
 }
 
-// For staff & head: show only own projects. For admin: show all.
+// Fiscal Year Filter
+$fy_filter = $_GET['fy'] ?? '';
+if ($fy_filter === '') $fy_filter = getCurrentFiscalYear();
+
+$where = ['p.deleted_at IS NULL'];
+$params = [];
+
 if (in_array($role, ['staff', 'head'])) {
-    $stmt = $pdo->prepare("
-        SELECT p.*,
-               u.full_name AS owner_name,
-               COUNT(DISTINCT a.id) AS activity_count,
-               COALESCE(SUM(ar.budget_spent),0) AS total_spent
-        FROM projects p
-        JOIN users u ON p.user_id = u.id
-        LEFT JOIN activities a ON (a.project_id = p.id AND a.deleted_at IS NULL)
-        LEFT JOIN activity_reports ar ON ar.activity_id = a.id
-        WHERE p.user_id = ? AND p.deleted_at IS NULL
-        GROUP BY p.id
-        ORDER BY p.created_at DESC
-    ");
-    $stmt->execute([$uid]);
-} else {
-    $stmt = $pdo->query("
-        SELECT p.*,
-               u.full_name AS owner_name,
-               COUNT(DISTINCT a.id) AS activity_count,
-               COALESCE(SUM(ar.budget_spent),0) AS total_spent
-        FROM projects p
-        JOIN users u ON p.user_id = u.id
-        LEFT JOIN activities a ON (a.project_id = p.id AND a.deleted_at IS NULL)
-        LEFT JOIN activity_reports ar ON ar.activity_id = a.id
-        WHERE p.deleted_at IS NULL
-        GROUP BY p.id
-        ORDER BY p.created_at DESC
-    ");
+    $where[] = 'p.user_id = ?';
+    $params[] = $uid;
 }
+
+if ($fy_filter && $fy_filter !== 'all') {
+    $where[] = 'p.fiscal_year = ?';
+    $params[] = $fy_filter;
+}
+
+$whereSQL = implode(' AND ', $where);
+
+// For staff & head: show only own projects. For admin: show all.
+$stmt = $pdo->prepare("
+    SELECT p.*,
+           u.full_name AS owner_name,
+           COUNT(DISTINCT a.id) AS activity_count,
+           COALESCE(SUM(ar.budget_spent),0) AS total_spent
+    FROM projects p
+    JOIN users u ON p.user_id = u.id
+    LEFT JOIN activities a ON (a.project_id = p.id AND a.deleted_at IS NULL)
+    LEFT JOIN activity_reports ar ON ar.activity_id = a.id
+    WHERE $whereSQL
+    GROUP BY p.id
+    ORDER BY p.created_at DESC
+");
+$stmt->execute($params);
 $projects = $stmt->fetchAll();
 
 // Stats
@@ -53,11 +56,19 @@ $budget   = array_sum(array_column($projects, 'budget_total'));
     <div style="display: flex; align-items: center; gap: 0.75rem;">
         <button class="mobile-toggle">☰</button>
         <div>
-        <h2>🏠 โครงการของฉัน</h2>
-        <div class="topbar-breadcrumb">ยินดีต้อนรับ, <?= htmlspecialchars($_SESSION['user_name']) ?></div>
+            <h2>🏠 โครงการของฉัน</h2>
+            <div class="topbar-breadcrumb">ยินดีต้อนรับ, <?= htmlspecialchars($_SESSION['user_name']) ?></div>
+        </div>
     </div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">ปีงบประมาณ:</label>
+            <select name="fy" class="form-control" style="width: auto; padding-right: 2rem;" onchange="this.form.submit()">
+                <?= renderFiscalYearOptions($fy_filter) ?>
+            </select>
+        </form>
+        <a href="add_project.php" class="btn btn-primary">➕ เพิ่มโครงการใหม่</a>
     </div>
-    <a href="add_project.php" class="btn btn-primary">➕ เพิ่มโครงการใหม่</a>
 </div>
 
 <div class="page-content">

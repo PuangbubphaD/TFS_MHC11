@@ -219,6 +219,7 @@ CREATE TABLE `projects` (
   `user_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
+  `fiscal_year` int(4) DEFAULT NULL,
   `budget_total` decimal(15,2) DEFAULT 0.00,
   `budget_spent` decimal(15,2) DEFAULT 0.00,
   `start_date` date DEFAULT NULL,
