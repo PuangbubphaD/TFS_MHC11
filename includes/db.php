@@ -19,6 +19,19 @@ define('BOT_API_KEY', ''); // Add your Bank of Thailand API Key here if needed
 define('APP_VERSION', '1.0.0');
 define('APP_NAME', 'Task Flow System');
 
+// ThaiD Configuration
+define('THAID_ENABLED', true);
+define('THAID_CLIENT_ID', 'ZnhRYW1ydXdvTmJhNU50aE5BWnhIRTFtMHZRV1NPZ1I'); // Change this in production or db.local.php
+define('THAID_CLIENT_SECRET', 'SmN6RFZRcFFGVmlrWXAxOTN3WXlSRE42TkVDVTE2eEk1SGV5RjZmNg'); // Change this
+define('THAID_REDIRECT_URI', 'http://localhost/TFS/thaid_callback.php'); // Update to production URL when deploying
+define('THAID_SCOPE', 'openid pid title given_name family_name');
+define('THAID_AUTO_REGISTER', true);
+define('THAID_REQUIRE_ADMIN_APPROVAL', true);
+define('THAID_USE_SANDBOX', false); // Set false for production
+define('THAID_SYNC_PROFILE', true);            // Sync ชื่อจาก ThaiD เข้า DB (เฉพาะช่องว่าง)
+define('THAID_CONFIRM_NAME_OVERWRITE', true);   // ต้องยืนยันก่อนทับชื่อ (เมื่อ pid ตรงแต่ชื่อไม่ตรง)
+define('THAID_LINK_BY_NAME', true);             // จับคู่บัญชีด้วยชื่อ-นามสกุล (สำหรับ user เก่า)
+
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

@@ -260,14 +260,23 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `full_name` varchar(150) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `lastname` varchar(100) DEFAULT NULL,
   `role` enum('staff','head','director','admin') NOT NULL DEFAULT 'staff',
   `department` varchar(100) DEFAULT NULL,
+  `thaid_sub` varchar(255) DEFAULT NULL,
+  `thaid_pid` varchar(13) DEFAULT NULL,
+  `auth_provider` enum('local','thaid') NOT NULL DEFAULT 'local',
+  `thaid_linked_at` timestamp NULL DEFAULT NULL,
+  `account_status` enum('active','pending_approval','suspended') NOT NULL DEFAULT 'active',
   `telegram_chat_id` varchar(100) DEFAULT NULL,
   `discord_webhook_url` varchar(255) DEFAULT NULL,
   `line_notify_token` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `thaid_sub` (`thaid_sub`),
+  UNIQUE KEY `thaid_pid` (`thaid_pid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

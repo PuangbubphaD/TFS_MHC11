@@ -22,7 +22,9 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrfOrDie();
-    $full_name  = trim($_POST['full_name'] ?? '');
+    $name = trim($_POST['name'] ?? '');
+    $lastname = trim($_POST['lastname'] ?? '');
+    $full_name = trim($name . ' ' . $lastname);
     $username   = trim($_POST['username'] ?? '');
     $role       = $_POST['role'] ?? 'staff';
     $department = trim($_POST['department'] ?? '');
@@ -31,13 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $discord_id = trim($_POST['discord_user_id'] ?? '');
     $password   = $_POST['password'] ?? '';
 
-    if (!$full_name || !$username) {
-        $error = 'กรุณากรอกชื่อและชื่อผู้ใช้';
+    if (!$name || !$username) {
+        $error = "กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อ, ชื่อผู้ใช้)";
     } else {
         try {
             // Update basic info and notification settings
-            $stmt = $pdo->prepare("UPDATE users SET full_name=?, username=?, role=?, department=?, telegram_chat_id=?, discord_webhook_url=?, discord_user_id=? WHERE id=?");
-            $stmt->execute([$full_name, $username, $role, $department, $telegram, $discord_wh, $discord_id, $user_id]);
+            $stmt = $pdo->prepare("UPDATE users SET name=?, lastname=?, full_name=?, username=?, role=?, department=?, telegram_chat_id=?, discord_webhook_url=?, discord_user_id=? WHERE id=?");
+            $stmt->execute([$name, $lastname, $full_name, $username, $role, $department, $telegram, $discord_wh, $discord_id, $user_id]);
 
             // Update password if provided
             if (!empty($password)) {
@@ -75,10 +77,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card fade-in" style="max-width:600px">
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-            <div class="form-group">
-                <label>ชื่อ-นามสกุล <span class="required">*</span></label>
-                <input type="text" name="full_name" class="form-control" required value="<?= htmlspecialchars($u['full_name']) ?>">
-            </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label">ชื่อ</label>
+                        <input type="text" name="name" class="form-control" required value="<?= htmlspecialchars($u['name'] ?? '') ?>" <?= ($u['auth_provider'] ?? '') === 'thaid' ? 'readonly style="background:#edf2f7"' : '' ?>>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label">นามสกุล</label>
+                        <input type="text" name="lastname" class="form-control" required value="<?= htmlspecialchars($u['lastname'] ?? '') ?>" <?= ($u['auth_provider'] ?? '') === 'thaid' ? 'readonly style="background:#edf2f7"' : '' ?>>
+                    </div>
+                </div>
             <div class="form-group">
                 <label>ชื่อผู้ใช้ (Username) <span class="required">*</span></label>
                 <input type="text" name="username" class="form-control" required value="<?= htmlspecialchars($u['username']) ?>">

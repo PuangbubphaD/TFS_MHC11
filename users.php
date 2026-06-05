@@ -8,6 +8,20 @@ if ($_SESSION['role'] !== 'admin') {
     exit;
 }
 
+// Handle User Approval
+if (isset($_POST['action']) && $_POST['action'] === 'approve' && isset($_POST['user_id'])) {
+    $uid = (int)$_POST['user_id'];
+    $stmt = $pdo->prepare("UPDATE users SET account_status = 'active' WHERE id = ?");
+    $stmt->execute([$uid]);
+    
+    // Log action
+    $logStmt = $pdo->prepare("INSERT INTO logs (user_id, action, details, ip_address) VALUES (?, 'approve_user', CONCAT('Approved user ID ', ?), ?)");
+    $logStmt->execute([$_SESSION['user_id'], $uid, $_SERVER['REMOTE_ADDR'] ?? '']);
+    
+    header("Location: users.php?msg=approved");
+    exit;
+}
+
 // Fetch all users
 $stmt = $pdo->query("SELECT * FROM users ORDER BY role DESC, full_name ASC");
 $users = $stmt->fetchAll();
@@ -38,6 +52,8 @@ $users = $stmt->fetchAll();
                         <th>ชื่อผู้ใช้</th>
                         <th>ตำแหน่ง/สิทธิ์</th>
                         <th>กลุ่มงาน</th>
+                        <th>สถานะบัญชี</th>
+                        <th>เข้าสู่ระบบด้วย</th>
                         <th>วันที่เพิ่ม</th>
                         <th style="text-align:center">จัดการ</th>
                     </tr>
@@ -58,9 +74,32 @@ $users = $stmt->fetchAll();
                             </span>
                         </td>
                         <td data-label="กลุ่มงาน"><?= htmlspecialchars($u['department'] ?: '-') ?></td>
+                        <td data-label="สถานะบัญชี">
+                            <?php if (isset($u['account_status']) && $u['account_status'] === 'pending_approval'): ?>
+                                <span style="color:#d97706;font-weight:600;font-size:0.85rem;">⏳ รออนุมัติ</span>
+                            <?php elseif (isset($u['account_status']) && $u['account_status'] === 'suspended'): ?>
+                                <span style="color:#dc2626;font-weight:600;font-size:0.85rem;">🚫 ระงับการใช้งาน</span>
+                            <?php else: ?>
+                                <span style="color:#059669;font-weight:600;font-size:0.85rem;">✅ ใช้งานได้ปกติ</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="เข้าสู่ระบบด้วย">
+                            <?php if (isset($u['auth_provider']) && $u['auth_provider'] === 'thaid'): ?>
+                                <span class="badge" style="background:#1e3a8a;color:#fff;">ThaiD</span>
+                            <?php else: ?>
+                                <span class="badge" style="background:#718096;color:#fff;">รหัสผ่าน</span>
+                            <?php endif; ?>
+                        </td>
                         <td data-label="วันที่เพิ่ม" style="font-size:0.85rem;color:var(--text-muted)"><?= thaiDate($u['created_at']) ?></td>
                         <td data-label="จัดการ" style="text-align:center">
                             <div style="display:flex;gap:0.5rem;justify-content:center">
+                                <?php if (isset($u['account_status']) && $u['account_status'] === 'pending_approval'): ?>
+                                    <form method="POST" style="margin:0" onsubmit="return confirm('ยืนยันการอนุมัติผู้ใช้งานรายนี้?');">
+                                        <input type="hidden" name="action" value="approve">
+                                        <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
+                                        <button type="submit" class="btn btn-primary btn-sm">✅ อนุมัติ</button>
+                                    </form>
+                                <?php endif; ?>
                                 <a href="edit_user.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm">✏️ แก้ไข</a>
                             </div>
                         </td>

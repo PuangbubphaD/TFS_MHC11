@@ -28,7 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action_type = $_POST['action_type'] ?? '';
 
     if ($action_type === 'update_profile') {
-        $full_name  = trim($_POST['full_name'] ?? '');
+        $name = trim($_POST['name'] ?? '');
+        $lastname = trim($_POST['lastname'] ?? '');
+        $full_name  = trim($name . ' ' . $lastname);
         $department = trim($_POST['department'] ?? '');
         $telegram_chat_id = trim($_POST['telegram_chat_id'] ?? '');
         $discord_webhook_url = trim($_POST['discord_webhook_url'] ?? '');
@@ -39,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'กรุณากรอกชื่อ-นามสกุล';
         } else {
             try {
-                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, department = ?, telegram_chat_id = ?, discord_webhook_url = ?, discord_user_id = ?, line_notify_token = ? WHERE id = ?");
-                $stmt->execute([$full_name, $department, $telegram_chat_id ?: null, $discord_webhook_url ?: null, $discord_user_id ?: null, $line_notify_token ?: null, $user_id]);
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, lastname = ?, full_name = ?, department = ?, telegram_chat_id = ?, discord_webhook_url = ?, discord_user_id = ?, line_notify_token = ? WHERE id = ?");
+                $stmt->execute([$name, $lastname, $full_name, $department, $telegram_chat_id ?: null, $discord_webhook_url ?: null, $discord_user_id ?: null, $line_notify_token ?: null, $user_id]);
 
                 // Update session
                 $_SESSION['user_name'] = $full_name;
@@ -115,13 +117,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
                 <input type="hidden" name="action_type" value="update_profile">
                 
+                <div class="form-group" style="background:#f8fafc; padding:1rem; border-radius:8px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="display:block; margin-bottom:0.25rem;">การเชื่อมต่อบัญชี ThaiD</strong>
+                        <?php if (!empty($u['thaid_pid']) || !empty($u['thaid_sub'])): ?>
+                            <span style="color:#059669; font-size:0.85rem;">✅ เชื่อมต่อเรียบร้อยแล้ว (<?= thaiDate($u['thaid_linked_at']) ?>)</span>
+                        <?php else: ?>
+                            <span style="color:#64748b; font-size:0.85rem;">❌ ยังไม่ได้เชื่อมต่อ</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if (empty($u['thaid_pid']) && empty($u['thaid_sub']) && defined('THAID_ENABLED') && THAID_ENABLED): ?>
+                        <a href="thaid_redirect.php" class="btn btn-sm" style="background:#1e3a8a; color:#fff;">ผูกบัญชี ThaiD</a>
+                    <?php endif; ?>
+                </div>
+                
                 <div class="form-group">
                     <label>ชื่อผู้ใช้ (Username)</label>
                     <input type="text" class="form-control" value="<?= htmlspecialchars($u['username']) ?>" readonly style="background:#e2e8f0;cursor:not-allowed">
                 </div>
                 <div class="form-group">
-                    <label>ชื่อ-นามสกุล <span class="required">*</span></label>
-                    <input type="text" name="full_name" class="form-control" required value="<?= htmlspecialchars($u['full_name']) ?>">
+                    <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label">ชื่อ</label>
+                        <input type="text" name="name" class="form-control" required value="<?= htmlspecialchars($u['name'] ?? '') ?>" <?= $u['auth_provider'] === 'thaid' ? 'readonly style="background:#edf2f7"' : '' ?>>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label">นามสกุล</label>
+                        <input type="text" name="lastname" class="form-control" required value="<?= htmlspecialchars($u['lastname'] ?? '') ?>" <?= $u['auth_provider'] === 'thaid' ? 'readonly style="background:#edf2f7"' : '' ?>>
+                    </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>แผนก/กลุ่มงาน</label>

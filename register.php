@@ -32,14 +32,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username  = trim($_POST['username'] ?? '');
     $password  = $_POST['password'] ?? '';
     $confirm   = $_POST['confirm_password'] ?? '';
-    $full_name = trim($_POST['full_name'] ?? '');
+    $name = trim($_POST['name'] ?? '');
+    $lastname = trim($_POST['lastname'] ?? '');
+    $full_name = trim($name . ' ' . $lastname);
     
     // Force role to staff unless registerer is logged-in admin
     $role      = ($is_admin) ? ($_POST['role'] ?? 'staff') : 'staff';
     $dept      = trim($_POST['department'] ?? '');
 
-    if (!$username || !$password || !$full_name) {
-        $error = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+    if (!$username || !$password || !$name) {
+        $error = "กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อผู้ใช้, รหัสผ่าน, ชื่อ)";
     } elseif ($password !== $confirm) {
         $error = 'รหัสผ่านไม่ตรงกัน';
     } elseif (strlen($password) < 6) {
@@ -51,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'ชื่อผู้ใช้นี้ถูกใช้แล้ว';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username,password,full_name,role,department) VALUES (?,?,?,?,?)");
-            $stmt->execute([$username, $hash, $full_name, $role, $dept]);
+            $stmt = $pdo->prepare("INSERT INTO users (username,password,name,lastname,full_name,role,department) VALUES (?,?,?,?,?,?,?)");
+            $stmt->execute([$username, $hash, $name, $lastname, $full_name, $role, $dept]);
             $success = 'สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ';
         }
     }
@@ -85,9 +87,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
             <div class="form-row form-row-2">
-                <div class="form-group">
-                    <label>ชื่อ-สกุล <span class="required">*</span></label>
-                    <input type="text" name="full_name" class="form-control" placeholder="ชื่อเต็ม" required value="<?= htmlspecialchars($_POST['full_name'] ?? '') ?>">
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label">ชื่อ</label>
+                        <input type="text" name="name" class="form-control" placeholder="ชื่อ" required value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label">นามสกุล</label>
+                        <input type="text" name="lastname" class="form-control" placeholder="นามสกุล" value="<?= htmlspecialchars($_POST['lastname'] ?? '') ?>">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>แผนก/กลุ่มงาน</label>

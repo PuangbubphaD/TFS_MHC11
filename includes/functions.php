@@ -467,3 +467,377 @@ function renderFiscalYearFormOptions($selected = null): string {
     }
     return $html;
 }
+
+/**
+ * ThaiD: Base64Url Decode
+ */
+function thaid_base64url_decode($data) {
+    $b64 = strtr($data, '-_', '+/');
+    $b64Pad = str_pad($b64, strlen($b64) % 4 === 0 ? strlen($b64) : strlen($b64) + 4 - (strlen($b64) % 4), '=', STR_PAD_RIGHT);
+    return base64_decode($b64Pad);
+}
+
+/**
+ * ThaiD: Decode JWT (without signature verification for simple plain PHP implementation)
+ * Note: DOPA sends data directly over HTTPS so parsing the payload is generally acceptable 
+ * when composer/php-jwt is not available.
+ */
+function thaid_decode_jwt($jwt) {
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) {
+        return null;
+    }
+    $payload = thaid_base64url_decode($parts[1]);
+    return json_decode($payload, true);
+}
+
+/**
+ * ThaiD: Send HTTP POST Request
+ */
+function thaid_http_post($url, $params, $headers = []) {
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    
+    if (is_array($params)) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+    } else {
+        // Raw string (e.g. JSON)
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+    }
+    
+    if (!empty($headers)) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    }
+    
+    // Disable SSL verification for local dev if needed, but better to keep it true for production
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($error) {
+        return ['error' => $error];
+    }
+    
+    return json_decode($response, true);
+}
+
+// ============================================================
+// ThaiD Name Sync Functions (3-Layer Architecture)
+// ============================================================
+
+/**
+ * Helper: Get user's display full_name from name + lastname columns
+ * Falls back to full_name column for backward compatibility
+ */
+function thaid_get_display_name($user) {
+    $name = trim($user['name'] ?? '');
+    $lastname = trim($user['lastname'] ?? '');
+    if ($name || $lastname) {
+        return trim($name . ' ' . $lastname);
+    }
+    return $user['full_name'] ?? '';
+}
+
+/**
+ * ThaiD: Normalize Thai person name for comparison
+ * - Trims whitespace
+ * - Removes Thai title prefixes (นาย, นาง, น.ส., ดร., etc.)
+ * - Converts to lowercase (mb_strtolower for UTF-8)
+ */
+function thaid_normalize_name($name) {
+    if (!$name) return '';
+    
+    // Trim and collapse whitespace
+    $name = trim(preg_replace('/\s+/', ' ', $name));
+    
+    // Remove title prefixes (longest first to avoid partial matches)
+    $titles = [
+        'ว่าที่ ร.ต.', 'ว่าที่ ร.ท.', 'ว่าที่ ร.อ.', 'ว่าที่',
+        'น.ส.', 'นางสาว', 'นาง', 'นาย', 'ดร.',
+        'mr.', 'mrs.', 'miss', 'ms.', 'dr.'
+    ];
+    
+    foreach ($titles as $t) {
+        if (mb_stripos($name, $t, 0, 'UTF-8') === 0) {
+            $name = mb_substr($name, mb_strlen($t, 'UTF-8'), null, 'UTF-8');
+            $name = ltrim($name);
+            break;
+        }
+    }
+    
+    return mb_strtolower(trim($name), 'UTF-8');
+}
+
+/**
+ * ThaiD: Extract name parts from userInfo
+ * Returns ['name' => ..., 'lastname' => ..., 'full_name' => ...]
+ */
+function thaid_extract_name_parts($userInfo) {
+    $given = trim($userInfo['given_name'] ?? '');
+    $family = trim($userInfo['family_name'] ?? '');
+    $title = trim($userInfo['title'] ?? '');
+    
+    if ($given) {
+        $fullName = trim(($title ? $title : '') . $given . ($family ? ' ' . $family : ''));
+        return [
+            'name' => $given,
+            'lastname' => $family,
+            'full_name' => $fullName
+        ];
+    }
+    
+    // Fallback: use 'name' field (full name string)
+    $nameStr = trim($userInfo['name'] ?? '');
+    if (!$nameStr) {
+        return ['name' => '', 'lastname' => '', 'full_name' => ''];
+    }
+    
+    // Remove title for splitting
+    $clean = $nameStr;
+    $titles = ['ว่าที่ ร.ต.', 'ว่าที่ ร.ท.', 'ว่าที่ ร.อ.', 'ว่าที่', 'น.ส.', 'นางสาว', 'นาง', 'นาย', 'ดร.'];
+    foreach ($titles as $t) {
+        if (mb_stripos($clean, $t, 0, 'UTF-8') === 0) {
+            $clean = mb_substr($clean, mb_strlen($t, 'UTF-8'), null, 'UTF-8');
+            $clean = ltrim($clean);
+            break;
+        }
+    }
+    
+    $parts = preg_split('/\s+/', trim($clean));
+    if (count($parts) >= 2) {
+        $lastname = array_pop($parts);
+        $name = implode(' ', $parts);
+    } else {
+        $name = $clean;
+        $lastname = '';
+    }
+    
+    return [
+        'name' => $name,
+        'lastname' => $lastname,
+        'full_name' => $nameStr
+    ];
+}
+
+/**
+ * ThaiD: Mask PID for display (e.g. 123xxxxxx7890)
+ */
+function thaid_mask_pid($pid) {
+    if (!$pid || mb_strlen($pid) !== 13) return $pid ?: '';
+    return substr($pid, 0, 3) . str_repeat('x', 7) . substr($pid, 10, 3);
+}
+
+/**
+ * Layer 1: Resolve (match) ThaiD user to existing TFS user
+ * Priority: sub → pid → name+lastname (if THAID_LINK_BY_NAME enabled)
+ * Returns: ['user' => row, 'matched_by' => 'sub'|'pid'|'name'] or null or 'ambiguous'
+ */
+function thaid_resolve_user($pdo, $userInfo) {
+    $sub = $userInfo['sub'] ?? null;
+    $pid = $userInfo['pid'] ?? null;
+    
+    // 1. Match by thaid_sub
+    if ($sub) {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE thaid_sub = ? LIMIT 1");
+        $stmt->execute([$sub]);
+        $user = $stmt->fetch();
+        if ($user) return ['user' => $user, 'matched_by' => 'sub'];
+    }
+    
+    // 2. Match by thaid_pid
+    if ($pid) {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE thaid_pid = ? LIMIT 1");
+        $stmt->execute([$pid]);
+        $user = $stmt->fetch();
+        if ($user) return ['user' => $user, 'matched_by' => 'pid'];
+    }
+    
+    // 3. Match by name + lastname (if enabled)
+    if (defined('THAID_LINK_BY_NAME') && THAID_LINK_BY_NAME) {
+        $nameParts = thaid_extract_name_parts($userInfo);
+        $thaidName = thaid_normalize_name($nameParts['name']);
+        $thaidLastname = thaid_normalize_name($nameParts['lastname']);
+        
+        if (!$thaidName) return null;
+        
+        // Get all users with non-empty names
+        $stmt = $pdo->query("SELECT * FROM users WHERE name IS NOT NULL AND name != ''");
+        $allUsers = $stmt->fetchAll();
+        
+        $matches = [];
+        foreach ($allUsers as $u) {
+            $dbName = thaid_normalize_name($u['name']);
+            if ($dbName !== $thaidName) continue;
+            
+            // If ThaiD has lastname, DB must have lastname and match
+            if ($thaidLastname) {
+                $dbLastname = thaid_normalize_name($u['lastname'] ?? '');
+                if (!$dbLastname || $dbLastname !== $thaidLastname) continue;
+            }
+            
+            $matches[] = $u;
+        }
+        
+        if (count($matches) === 1) {
+            return ['user' => $matches[0], 'matched_by' => 'name'];
+        } elseif (count($matches) > 1) {
+            return 'ambiguous';
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Layer 2: Sync ThaiD profile (non-destructive — fill empty fields only)
+ */
+function thaid_sync_profile($pdo, $user, $userInfo) {
+    if (!defined('THAID_SYNC_PROFILE') || !THAID_SYNC_PROFILE) return;
+    
+    $updates = [];
+    $params = [];
+    $nameParts = thaid_extract_name_parts($userInfo);
+    $sub = $userInfo['sub'] ?? null;
+    $pid = $userInfo['pid'] ?? null;
+    
+    // Fill thaid_sub if empty
+    if (empty($user['thaid_sub']) && $sub) {
+        $updates[] = "thaid_sub = ?";
+        $params[] = $sub;
+    }
+    
+    // Fill thaid_pid if empty
+    if (empty($user['thaid_pid']) && $pid) {
+        $updates[] = "thaid_pid = ?";
+        $params[] = $pid;
+    } elseif (!empty($user['thaid_pid']) && $pid && $user['thaid_pid'] !== $pid) {
+        // PID mismatch — log warning, do NOT update
+        error_log("ThaiD Sync Warning: PID mismatch for user {$user['id']}. DB={$user['thaid_pid']}, ThaiD={$pid}");
+    }
+    
+    // Fill name if empty
+    if (empty($user['name']) && $nameParts['name']) {
+        $updates[] = "name = ?";
+        $params[] = $nameParts['name'];
+    }
+    
+    // Fill lastname if empty
+    if (empty($user['lastname']) && $nameParts['lastname']) {
+        $updates[] = "lastname = ?";
+        $params[] = $nameParts['lastname'];
+    }
+    
+    // Update full_name if empty
+    if (empty($user['full_name']) && $nameParts['full_name']) {
+        $updates[] = "full_name = ?";
+        $params[] = $nameParts['full_name'];
+    }
+    
+    // Set auth_provider and linked_at if linking for first time
+    if (empty($user['auth_provider']) || $user['auth_provider'] === 'local') {
+        if ($sub || $pid) {
+            $updates[] = "auth_provider = 'thaid'";
+            if (empty($user['thaid_linked_at'])) {
+                $updates[] = "thaid_linked_at = NOW()";
+            }
+        }
+    }
+    
+    if (empty($updates)) return;
+    
+    $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
+    $params[] = $user['id'];
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+}
+
+/**
+ * Layer 3: Check if name overwrite confirmation is needed
+ * Returns proposal array or null
+ */
+function thaid_get_name_overwrite_proposal($user, $userInfo) {
+    if (!defined('THAID_SYNC_PROFILE') || !THAID_SYNC_PROFILE) return null;
+    if (!defined('THAID_CONFIRM_NAME_OVERWRITE') || !THAID_CONFIRM_NAME_OVERWRITE) return null;
+    
+    $pid = $userInfo['pid'] ?? null;
+    if (!$pid || empty($user['thaid_pid']) || $user['thaid_pid'] !== $pid) return null;
+    
+    $nameParts = thaid_extract_name_parts($userInfo);
+    if (!$nameParts['name']) return null;
+    
+    $fields = [];
+    
+    // Check name mismatch
+    if (!empty($user['name'])) {
+        $dbNorm = thaid_normalize_name($user['name']);
+        $thaidNorm = thaid_normalize_name($nameParts['name']);
+        if ($dbNorm !== $thaidNorm) {
+            $fields[] = 'name';
+        }
+    }
+    
+    // Check lastname mismatch
+    if (!empty($user['lastname']) && $nameParts['lastname']) {
+        $dbNorm = thaid_normalize_name($user['lastname']);
+        $thaidNorm = thaid_normalize_name($nameParts['lastname']);
+        if ($dbNorm !== $thaidNorm) {
+            $fields[] = 'lastname';
+        }
+    }
+    
+    if (empty($fields)) return null;
+    
+    return [
+        'current' => [
+            'name' => $user['name'] ?? '',
+            'lastname' => $user['lastname'] ?? '',
+            'full_name' => thaid_get_display_name($user)
+        ],
+        'proposed' => [
+            'name' => $nameParts['name'],
+            'lastname' => $nameParts['lastname'],
+            'full_name' => $nameParts['full_name']
+        ],
+        'fields' => $fields,
+        'pid_masked' => thaid_mask_pid($pid)
+    ];
+}
+
+/**
+ * Layer 3: Apply name overwrite after user confirms
+ */
+function thaid_apply_name_overwrite($pdo, $user, $userInfo) {
+    $nameParts = thaid_extract_name_parts($userInfo);
+    
+    $updates = [];
+    $params = [];
+    
+    if ($nameParts['name']) {
+        $updates[] = "name = ?";
+        $params[] = $nameParts['name'];
+    }
+    if ($nameParts['lastname']) {
+        $updates[] = "lastname = ?";
+        $params[] = $nameParts['lastname'];
+    }
+    // Also update full_name for backward compatibility
+    $newFullName = trim($nameParts['name'] . ' ' . $nameParts['lastname']);
+    if ($newFullName) {
+        $updates[] = "full_name = ?";
+        $params[] = $newFullName;
+    }
+    
+    if (!empty($updates)) {
+        $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
+        $params[] = $user['id'];
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+    }
+    
+    // Then sync other fields (sub, pid, etc.)
+    thaid_sync_profile($pdo, $user, $userInfo);
+}
