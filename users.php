@@ -180,7 +180,8 @@ if (isset($_GET['msg'])) {
                                 <a href="edit_user.php?id=<?= $u['id'] ?>" class="btn btn-outline btn-sm" style="font-size:0.78rem">✏️ แก้ไข</a>
 
                                 <?php if (!$isSelf): ?>
-                                <form method="POST" style="margin:0" onsubmit="return confirm('⚠️ ลบบัญชี \"<?= htmlspecialchars($u[\'full_name\'], ENT_QUOTES) ?>\" ออกจากระบบถาวร? ข้อมูลทั้งหมดจะหายไปเลย')">
+                                <?php $deleteName = htmlspecialchars($u['full_name'], ENT_QUOTES); ?>
+                                <form method="POST" style="margin:0" onsubmit="return confirm('⚠️ ลบบัญชี &quot;<?= $deleteName ?>&quot; ออกจากระบบถาวร? ข้อมูลทั้งหมดจะหายไปเลย')">
                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
