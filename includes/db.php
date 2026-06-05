@@ -23,7 +23,16 @@ define('APP_NAME', 'Task Flow System');
 define('THAID_ENABLED', true);
 define('THAID_CLIENT_ID', 'ZnhRYW1ydXdvTmJhNU50aE5BWnhIRTFtMHZRV1NPZ1I'); // Change this in production or db.local.php
 define('THAID_CLIENT_SECRET', 'SmN6RFZRcFFGVmlrWXAxOTN3WXlSRE42TkVDVTE2eEk1SGV5RjZmNg'); // Change this
-define('THAID_REDIRECT_URI', 'http://localhost/TFS/thaid_callback.php'); // Update to production URL when deploying
+// Auto-detect base URL for ThaiD Redirect
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) ? "https://" : "http://";
+$domainName = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$appDir = str_replace('\\', '/', dirname(__DIR__));
+$docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? '');
+$basePath = '';
+if ($docRoot && strpos($appDir, $docRoot) === 0) {
+    $basePath = substr($appDir, strlen($docRoot));
+}
+define('THAID_REDIRECT_URI', $protocol . $domainName . $basePath . '/thaid_callback.php');
 define('THAID_SCOPE', 'openid pid title given_name family_name');
 define('THAID_AUTO_REGISTER', true);
 define('THAID_REQUIRE_ADMIN_APPROVAL', true);
