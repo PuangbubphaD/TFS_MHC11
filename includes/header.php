@@ -105,14 +105,18 @@ $initials = mb_substr($name, 0, 1, 'UTF-8');
                         Version <?= defined('APP_VERSION') ? APP_VERSION : '1.0.0' ?>
                     </div>
                     
-                    <h4 style="border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:1rem; color:var(--text-main);">มีอะไรใหม่ในเวอร์ชันนี้</h4>
-                    <ul style="color:var(--text-muted); line-height:1.6; padding-left:1.2rem; margin-bottom:1.5rem;">
-                        <li>ระบบจัดการโครงการและกิจกรรม (Project & Activity Management)</li>
-                        <li>แดชบอร์ดสรุปผลแบบเรียลไทม์ (Real-time Dashboard)</li>
-                        <li>ระบบเบิกจ่ายงบประมาณ (Budget Management)</li>
-                        <li>การจัดการไฟล์แนบและแกลลอรี่รูปภาพ (File & Gallery System)</li>
-                        <li>ระบบจัดการผู้ใช้งานและสิทธิ์การเข้าถึง (Role-based Access Control)</li>
-                        <li>รองรับปฏิทินวันหยุดราชการไทย (Thai Public Holidays API)</li>
+                    <h4 style="border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:1rem; color:var(--text-main);">รายละเอียดระบบ Version 1.0.0</h4>
+                    <ul style="color:var(--text-muted); line-height:1.8; padding-left:1.2rem; margin-bottom:1.5rem; font-size:0.9rem;">
+                        <li>📋 ระบบจัดการโครงการและกิจกรรม (Project &amp; Activity Management)</li>
+                        <li>📊 แดชบอร์ดสรุปผลแบบเรียลไทม์ (Real-time Dashboard)</li>
+                        <li>💰 ระบบติดตามงบประมาณและการเบิกจ่าย (Budget Tracking)</li>
+                        <li>📅 ระบบปีงบประมาณไทย พร้อม Filter ทุกหน้า (Fiscal Year System)</li>
+                        <li>🖼️ การจัดการไฟล์แนบและแกลลอรี่รูปภาพ (File &amp; Gallery)</li>
+                        <li>👥 ระบบจัดการผู้ใช้งานและสิทธิ์การเข้าถึง (Role-based Access)</li>
+                        <li>🔔 ระบบแจ้งเตือนอัตโนมัติ Telegram &amp; Discord (Auto Notifications)</li>
+                        <li>📅 รองรับปฏิทินวันหยุดราชการไทย (Thai Public Holidays)</li>
+                        <li>📄 รายงานสรุปโครงการแบบพิมพ์ได้ (Printable Reports)</li>
+                        <li>📌 ระบบขั้นตอนกิจกรรม 8 ขั้นตอน พร้อมกำหนดการ (Phase Tracking)</li>
                     </ul>
                     
                     <div style="font-size:0.8rem; color:var(--text-muted); text-align:center; border-top:1px solid var(--border); padding-top:1rem; margin-top:auto;">
