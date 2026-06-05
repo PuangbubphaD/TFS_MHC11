@@ -39,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Force role to staff unless registerer is logged-in admin
     $role      = ($is_admin) ? ($_POST['role'] ?? 'staff') : 'staff';
     $dept      = trim($_POST['department'] ?? '');
+    // Admin registering another user → active immediately, others wait for approval
+    $account_status = $is_admin ? 'active' : 'pending_approval';
 
     if (!$username || !$password || !$name) {
         $error = "กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อผู้ใช้, รหัสผ่าน, ชื่อ)";
@@ -53,9 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'ชื่อผู้ใช้นี้ถูกใช้แล้ว';
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username,password,name,lastname,full_name,role,department) VALUES (?,?,?,?,?,?,?)");
-            $stmt->execute([$username, $hash, $name, $lastname, $full_name, $role, $dept]);
-            $success = 'สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ';
+            $stmt = $pdo->prepare("INSERT INTO users (username,password,name,lastname,full_name,role,department,account_status) VALUES (?,?,?,?,?,?,?,?)");
+            $stmt->execute([$username, $hash, $name, $lastname, $full_name, $role, $dept, $account_status]);
+            if ($is_admin) {
+                $success = 'สร้างบัญชีสำเร็จ! ผู้ใช้งานสามารถเข้าสู่ระบบได้ทันที';
+            } else {
+                $success = 'สมัครสมาชิกสำเร็จ! กรุณารอให้ผู้ดูแลระบบ (Admin) อนุมัติบัญชีของคุณก่อนเข้าสู่ระบบ';
+            }
         }
     }
 }
@@ -81,7 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert alert-danger">⚠️ <?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
         <?php if ($success): ?>
-            <div class="alert alert-success">✅ <?= $success ?> <a href="login.php">คลิกที่นี่</a></div>
+            <div class="alert alert-success" style="background:#d1fae5;color:#065f46;padding:1rem;border-radius:8px;margin-bottom:1.5rem;text-align:center;">
+                ✅ <?= $success ?>
+                <?php if ($is_admin): ?>
+                    &nbsp;<a href="users.php" style="color:#065f46;font-weight:600;text-decoration:underline;">ดูรายการสมาชิก</a>
+                <?php else: ?>
+                    <br><small style="font-size:0.85rem;opacity:0.8;margin-top:0.5rem;display:block;">คุณจะได้รับการแจ้งเตือนเมื่อบัญชีได้รับการอนุมัติ</small>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
         <form method="POST">
