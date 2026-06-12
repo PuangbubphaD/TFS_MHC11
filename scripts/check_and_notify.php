@@ -23,6 +23,43 @@ $currentTime = date('H:i');
 echo "Current Date: $currentDate, Current Time: $currentTime\n";
 echo "Configured Run Time: $runTime, Last Run Date: $lastRunDate\n";
 
+// Check if today is a weekend (Saturday = 6, Sunday = 7)
+$dayOfWeek = (int)date('N');
+if ($dayOfWeek >= 6) {
+    echo "Today is a weekend (Day $dayOfWeek). Skipping notification.\n";
+    exit;
+}
+
+// Check if today is a public holiday
+$isHoliday = false;
+try {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM thai_holidays WHERE holiday_date = ?");
+    $stmt->execute([$currentDate]);
+    if ($stmt->fetchColumn() > 0) {
+        $isHoliday = true;
+    }
+} catch (Exception $e) {
+    // Ignore and fallback
+}
+
+if (!$isHoliday) {
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM holidays WHERE holiday_date = ?");
+        $stmt->execute([$currentDate]);
+        if ($stmt->fetchColumn() > 0) {
+            $isHoliday = true;
+        }
+    } catch (Exception $e) {
+        // Ignore
+    }
+}
+
+if ($isHoliday) {
+    echo "Today is a public holiday. Skipping notification.\n";
+    exit;
+}
+
+
 if ($currentDate === $lastRunDate) {
     echo "Notification script already ran today. Skipping.\n";
     exit;
