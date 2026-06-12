@@ -37,6 +37,9 @@ if (isset($_GET['error'])) {
 if (isset($_GET['msg']) && $_GET['msg'] === 'thaid_registered') {
     $success_msg = 'ลงทะเบียนสำเร็จ! กรุณารอแอดมินอนุมัติบัญชีของคุณ';
 }
+if (isset($_GET['timeout']) && $_GET['timeout'] == 1) {
+    $error = 'เซสชันของคุณหมดอายุเนื่องจากไม่มีการเคลื่อนไหวเกิน 30 นาที กรุณาเข้าสู่ระบบใหม่';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF
